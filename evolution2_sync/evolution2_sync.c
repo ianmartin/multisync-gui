@@ -31,7 +31,7 @@ void fill_calendar_menu(OSyncMember *member, char *selected)
 	OSyncError *error = NULL;
 	GList *calendars = osync_member_call_plugin(member, "evo2_list_calendars", NULL, &error);
 	if (osync_error_is_set(&error)) {
-		printf("Unable to call plugin: %s\n", error->message);
+		printf("Unable to call plugin: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 		return;
 	}
@@ -69,7 +69,7 @@ void fill_tasks_menu(OSyncMember *member, char *selected)
 	OSyncError *error = NULL;
 	GList *tasks = osync_member_call_plugin(member, "evo2_list_tasks", NULL, &error);
 	if (osync_error_is_set(&error)) {
-		printf("Unable to call plugin: %s\n", error->message);
+		printf("Unable to call plugin: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 		return;
 	}
@@ -107,7 +107,7 @@ void fill_addressbook_menu(OSyncMember *member, char *selected)
 	OSyncError *error = NULL;
 	GList *tasks = osync_member_call_plugin(member, "evo2_list_addressbooks", NULL, &error);
 	if (osync_error_is_set(&error)) {
-		printf("Unable to call plugin: %s\n", error->message);
+		printf("Unable to call plugin: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 		return;
 	}
@@ -215,7 +215,7 @@ void msync_evo2_sync_options(MSyncEnv *env, OSyncMember *target)
 	evo2_wnd_options = create_optwin();
 	OSyncError *error = NULL;
 	if (!osync_member_get_config(member, &config, &size, &error)) {
-		printf("Unable to get config: %s\n", error->message);
+		printf("Unable to get config: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 		return;
 	}

@@ -99,7 +99,7 @@ void msync_start_groups(void)
 			continue;
 		pair->engine = osync_engine_new(pair->group, &error);
 		if (!pair->engine) {
-			printf("Error while creating syncengine: %s\n", error->message);
+			printf("Error while creating syncengine: %s\n", osync_error_print(&error));
 			msync_set_pairlist_status(pair, "Error initializing");
 			osync_error_free(&error);
 			continue;
@@ -114,9 +114,11 @@ void msync_start_groups(void)
 		//osync_engine_flag_only_info(engine);
 		
 		if (!osync_engine_init(pair->engine, &error)) {
-			printf("Error while initializing syncengine: %s\n", error->message);
-			msync_set_pairlist_status(pair, "Error initializing");
+			char *message = g_strdup_printf("Error initializing: %s", osync_error_print(&error));
+			msync_set_pairlist_status(pair, message);
+			g_free(message);
 			osync_error_free(&error);
+			pair->error = TRUE;
 			continue;
 		}
 		
@@ -136,7 +138,7 @@ int main (int argc, char *argv[])
 	msync_register_plugins(env);
 	
 	if (!osync_env_initialize(env->osync, &error)) {
-		printf("Unable to initialize: %s\n", error->message);
+		printf("Unable to initialize: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 		return 1;
 	}

@@ -40,6 +40,7 @@ typedef struct MSyncPair {
 	OSyncEngine *engine;
 	int read;
 	int written;
+	osync_bool error;
 } MSyncPair;
 
 typedef void (* MSyncOptionFunction) (MSyncEnv *, OSyncMember *);

@@ -12,7 +12,7 @@ void msync_file_sync_options(MSyncEnv *env, OSyncMember *target)
 	member = target;
 	OSyncError *error = NULL;
 	if (!osync_member_get_config(member, &config, &size, &error)) {
-		printf("Unable to get config: %s\n", error->message);
+		printf("Unable to get config: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 		return;
 	}
