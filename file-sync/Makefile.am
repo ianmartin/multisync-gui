@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-AM_CFLAGS = -Werror -Wall
+AM_CFLAGS = @XMLCFLAGS@ -Werror -Wall
 
 INCLUDES = @PACKAGE_CFLAGS@ -I$(top_srcdir)
 
@@ -11,4 +11,5 @@ libfile_sync_la_SOURCES = \
 	interface.c interface.h \
 	callbacks.c callbacks.h
 
+libfile_sync_la_LDFLAGS = @XMLLDFLAGS@
 libfile_sync_la_LIBADD = @PACKAGE_LIBS@
