@@ -65,7 +65,7 @@ void conflict_handler(OSyncEngine *engine, OSyncMapping *mapping, void *user_dat
 	gtk_widget_show(env->dupwin);
 }
 
-void entry_status(OSyncEngine *engine, MSyncChangeUpdate *status, void *user_data)
+void entry_status(OSyncEngine *engine, OSyncChangeUpdate *status, void *user_data)
 {
 	MSyncPair *pair = (MSyncPair *)user_data;
 	switch (status->type) {
@@ -99,7 +99,7 @@ void msync_start_groups(void)
 		OSyncError *error = NULL;
 		if (pair->engine)
 			continue;
-		pair->engine = osync_engine_new(pair->group, &error);
+		pair->engine = osengine_new(pair->group, &error);
 		if (!pair->engine) {
 			printf("Error while creating syncengine: %s\n", osync_error_print(&error));
 			msync_set_pairlist_status(pair, "Error initializing");
@@ -107,15 +107,15 @@ void msync_start_groups(void)
 			continue;
 		}
 		msync_set_pairlist_status(pair, "Ready");
-		//osync_engine_set_memberstatus_callback(engine, member_status);
-		osync_engine_set_changestatus_callback(pair->engine, entry_status, (void *)pair);
-		osync_engine_set_enginestatus_callback(pair->engine, engine_status, (void *)pair);
-		//osync_engine_set_mappingstatus_callback(engine, mapping_status);
-		osync_engine_set_conflict_callback(pair->engine, conflict_handler, (void *)pair);
-		//osync_engine_set_message_callback(engine, plgmsg_function, "palm_uid_mismatch", NULL);
-		//osync_engine_flag_only_info(engine);
+		//osengine_set_memberstatus_callback(engine, member_status);
+		osengine_set_changestatus_callback(pair->engine, entry_status, (void *)pair);
+		osengine_set_enginestatus_callback(pair->engine, engine_status, (void *)pair);
+		//osengine_set_mappingstatus_callback(engine, mapping_status);
+		osengine_set_conflict_callback(pair->engine, conflict_handler, (void *)pair);
+		//osengine_set_message_callback(engine, plgmsg_function, "palm_uid_mismatch", NULL);
+		//osengine_flag_only_info(engine);
 		
-		if (!osync_engine_init(pair->engine, &error)) {
+		if (!osengine_init(pair->engine, &error)) {
 			char *message = g_strdup_printf("Error initializing: %s", osync_error_print(&error));
 			msync_set_pairlist_status(pair, message);
 			g_free(message);

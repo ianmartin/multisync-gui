@@ -694,7 +694,7 @@ void msync_synchronize(void)
 		pair->read = 0;
 		pair->written = 0;
 		OSyncError *error = NULL;
-		if (!osync_engine_synchronize(pair->engine, &error)) {
+		if (!osengine_synchronize(pair->engine, &error)) {
 			printf("Error while starting synchronization: %s\n", osync_error_print(&error));
 			msync_set_pairlist_status(pair, "Error starting sync");
 			osync_error_free(&error);
@@ -1182,8 +1182,8 @@ void msync_main_quit(void) {
 	for (p = env->syncpairs; p; p = p->next) {
 		MSyncPair *pair = p->data;
 		if (pair->engine) {
-			osync_engine_finalize(pair->engine);
-			osync_engine_free(pair->engine);
+			osengine_finalize(pair->engine);
+			osengine_free(pair->engine);
 		}
 	}
 	gtk_main_quit();
