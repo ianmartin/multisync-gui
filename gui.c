@@ -1163,8 +1163,10 @@ void msync_main_quit(void) {
 	GList *p;
 	for (p = env->syncpairs; p; p = p->next) {
 		MSyncPair *pair = p->data;
-		if (pair->engine)
+		if (pair->engine) {
 			osync_engine_finalize(pair->engine);
+			osync_engine_free(engine);
+		}
 	}
 	gtk_main_quit();
 }
