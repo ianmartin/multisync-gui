@@ -12,7 +12,7 @@ void msync_solve_conflict_duplicate(void)
 {
 	MSyncPair *pair = (MSyncPair *)gtk_object_get_data(GTK_OBJECT(env->dupwin), "pair");
 	OSyncMapping *mapping = (OSyncMapping *)gtk_object_get_data(GTK_OBJECT(env->dupwin), "mapping");
-	osync_mapping_duplicate(pair->engine, mapping);
+	osengine_mapping_duplicate(pair->engine, mapping);
 	msync_dupe_window_close();
 }
 
@@ -20,7 +20,7 @@ void msync_solve_conflict_choose(int nth)
 {
 	MSyncPair *pair = (MSyncPair *)gtk_object_get_data(GTK_OBJECT(env->dupwin), "pair");
 	OSyncMapping *mapping = (OSyncMapping *)gtk_object_get_data(GTK_OBJECT(env->dupwin), "mapping");
-	OSyncChange *change = osync_mapping_nth_entry(mapping, nth);
+	OSyncChange *change = osengine_mapping_nth_change(mapping, nth);
 	g_assert(change);
 	osengine_mapping_solve(pair->engine, mapping, change);
 	//osync_mapping_multiply_master(pair->engine, mapping);
@@ -45,14 +45,14 @@ void conflict_handler(OSyncEngine *engine, OSyncMapping *mapping, void *user_dat
 			"How should MultiSync proceed?");
 
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(lookup_widget(env->dupwin, "firsttextview")));
-	change = osync_mapping_nth_entry(mapping, 0);
+	change = osengine_mapping_nth_change(mapping, 0);
 	gtk_text_buffer_set_text(buffer, osync_change_get_data(change), osync_change_get_datasize(change));
 	tmp = g_strdup_printf("Entry from %s (first plugin):", osync_member_get_pluginname(osync_change_get_member(change)));
 	gtk_label_set_label(GTK_LABEL(lookup_widget(env->dupwin, "firstlabel")), tmp);
     g_free(tmp);
 
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(lookup_widget(env->dupwin, "secondtextview")));
-	change = osync_mapping_nth_entry(mapping, 1);
+	change = osengine_mapping_nth_change(mapping, 1);
 	gtk_text_buffer_set_text(buffer, osync_change_get_data(change), osync_change_get_datasize(change));
 	tmp = g_strdup_printf("Entry from %s (second plugin):", osync_member_get_pluginname(osync_change_get_member(change)));
 	gtk_label_set_label(GTK_LABEL(lookup_widget(env->dupwin, "secondlabel")), tmp);
