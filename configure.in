@@ -15,7 +15,8 @@ XMLLDFLAGS=`xml2-config --libs`
 AC_SUBST(XMLCFLAGS)
 AC_SUBST(XMLLDFLAGS)
 
-pkg_modules="glib-2.0 libgnomeui-2.0 opensync osengine"
+export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
+pkg_modules="glib-2.0 libgnomeui-2.0 opensync-1.0 osengine-1.0"
 PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
 AC_SUBST(PACKAGE_CFLAGS)
 AC_SUBST(PACKAGE_LIBS)
