@@ -127,7 +127,7 @@ create_syncpairwin (void)
   GtkWidget *calendarcheck;
   GtkWidget *addressbookcheck;
   GtkWidget *todocheck;
-  GtkWidget *nocommontypelabel;
+  GtkWidget *filecheck;
   GtkWidget *label12;
   GtkWidget *vbox14;
   GtkWidget *label36;
@@ -352,27 +352,28 @@ create_syncpairwin (void)
   gtk_box_pack_start (GTK_BOX (hbox10), table3, TRUE, TRUE, 0);
 
   calendarcheck = gtk_check_button_new_with_mnemonic ("Ca_lendar (Events)");
+  gtk_widget_show (calendarcheck);
   gtk_table_attach (GTK_TABLE (table3), calendarcheck, 0, 1, 0, 1,
                     (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
                     (GtkAttachOptions) (0), 0, 0);
 
   addressbookcheck = gtk_check_button_new_with_mnemonic ("A_ddressbook (Contacts)");
+  gtk_widget_show (addressbookcheck);
   gtk_table_attach (GTK_TABLE (table3), addressbookcheck, 0, 1, 1, 2,
                     (GtkAttachOptions) (GTK_FILL),
                     (GtkAttachOptions) (0), 0, 0);
 
   todocheck = gtk_check_button_new_with_mnemonic ("_Tasks (ToDo)");
+  gtk_widget_show (todocheck);
   gtk_table_attach (GTK_TABLE (table3), todocheck, 0, 1, 2, 3,
                     (GtkAttachOptions) (GTK_FILL),
                     (GtkAttachOptions) (0), 0, 0);
 
-  nocommontypelabel = gtk_label_new ("Plugins have nothing in common");
-  gtk_table_attach (GTK_TABLE (table3), nocommontypelabel, 0, 1, 3, 4,
+  filecheck = gtk_check_button_new_with_mnemonic ("_Files");
+  gtk_widget_show (filecheck);
+  gtk_table_attach (GTK_TABLE (table3), filecheck, 0, 1, 3, 4,
                     (GtkAttachOptions) (GTK_FILL),
                     (GtkAttachOptions) (0), 0, 0);
-  gtk_label_set_justify (GTK_LABEL (nocommontypelabel), GTK_JUSTIFY_CENTER);
-  gtk_misc_set_alignment (GTK_MISC (nocommontypelabel), 0, 0.5);
-  gtk_misc_set_padding (GTK_MISC (nocommontypelabel), 0, 4);
 
   label12 = gtk_label_new ("Plugins");
   gtk_widget_show (label12);
@@ -780,6 +781,9 @@ create_syncpairwin (void)
   g_signal_connect ((gpointer) todocheck, "toggled",
                     G_CALLBACK (on_todocheck_toggled),
                     NULL);
+  g_signal_connect ((gpointer) filecheck, "toggled",
+                    G_CALLBACK (on_todocheck_toggled),
+                    NULL);
   g_signal_connect ((gpointer) filterdataentry, "changed",
                     G_CALLBACK (on_filterdataentry_changed),
                     NULL);
@@ -838,7 +842,7 @@ create_syncpairwin (void)
   GLADE_HOOKUP_OBJECT (syncpairwin, calendarcheck, "calendarcheck");
   GLADE_HOOKUP_OBJECT (syncpairwin, addressbookcheck, "addressbookcheck");
   GLADE_HOOKUP_OBJECT (syncpairwin, todocheck, "todocheck");
-  GLADE_HOOKUP_OBJECT (syncpairwin, nocommontypelabel, "nocommontypelabel");
+  GLADE_HOOKUP_OBJECT (syncpairwin, filecheck, "filecheck");
   GLADE_HOOKUP_OBJECT (syncpairwin, label12, "label12");
   GLADE_HOOKUP_OBJECT (syncpairwin, vbox14, "vbox14");
   GLADE_HOOKUP_OBJECT (syncpairwin, label36, "label36");

@@ -17,7 +17,7 @@ MSyncPair *msync_get_selected_pair(MSyncEnv *env) {
 }
 
 void msync_show_pairlist(MSyncEnv *env) {
-	printf("show_pairlist\n");
+  printf("show_pairlist\n");
   GtkListStore *pairlist = NULL;
   GtkTreeSelection *select;
   const char *columns[] = {NULL, NULL, NULL, NULL};
