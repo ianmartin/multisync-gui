@@ -34,6 +34,7 @@ void msync_show_pairlist(MSyncEnv *env) {
   for (n = 0; n < g_list_length(env->syncpairs); n++) { 
     GtkTreeIter iter;
     MSyncPair *pair = g_list_nth_data(env->syncpairs, n);
+    printf("Showing group %s\n", osync_group_get_name(pair->group));
     columns[0] = osync_group_get_name(pair->group);
     columns[1] = "";
     gtk_list_store_append (pairlist, &iter);
@@ -43,29 +44,33 @@ void msync_show_pairlist(MSyncEnv *env) {
       gtk_tree_selection_select_iter(select, &iter);	 
   }
 }
+	
+void msync_set_pairlist_status(MSyncPair *pair, const char *message, ...)
+{
+	int n;
+	GtkListStore* pairlist;
+  
+	if (!env->mainwindow)
+		return;
+  
+	va_list arglist;
+	char status[4096];
+	
+	va_start(arglist, message);
+	vsprintf(status, message, arglist);
+	printf("setting status %s\n", status);
 
-/*gboolean do_set_pairlist_status(gpointer data) {
-  set_pairlist_status_args *arg = data;
-  int n;
-  GtkListStore* pairlist;
-  if (mainwindow) {
-    if ((pairlist = g_object_get_data(G_OBJECT(mainwindow), "syncpairstore"))) {
-      for (n = 0; n < g_list_length(syncpairlist); n++) {
-	if (g_list_nth_data(syncpairlist,n) == arg->pair) {
-	  GtkTreeIter iter;
-	  gtk_tree_model_iter_nth_child (GTK_TREE_MODEL(pairlist), &iter, NULL, n);
-	  gtk_list_store_set(pairlist, &iter, 1,  arg->pair->status, -1);
+	if ((pairlist = g_object_get_data(G_OBJECT(env->mainwindow), "syncpairstore"))) {
+		for (n = 0; n < g_list_length(env->syncpairs); n++) {
+			if (g_list_nth_data(env->syncpairs,n) == pair) {
+				GtkTreeIter iter;
+				gtk_tree_model_iter_nth_child (GTK_TREE_MODEL(pairlist), &iter, NULL, n);
+				gtk_list_store_set(pairlist, &iter, 1,  status, -1);
+			}
+		}
 	}
-      }
-    }
-    if (arg->realaction)
-      gtk_window_set_title(GTK_WINDOW(mainwindow), arg->pair->status);
-    else
-      gtk_window_set_title(GTK_WINDOW(mainwindow), "MultiSync");
-  }
-  g_free(arg);
-  return(FALSE);
-}*/
+	va_end(arglist);
+}
 
 /*void async_set_pairlist_status(sync_pair *pair, char *status, 
 			       gboolean realaction) {
@@ -653,17 +658,21 @@ void msync_cancel_syncpairwindow(void)
 	gtk_widget_set_sensitive(button, TRUE);
 }
 
-void msync_synchronize(void) {
-  GtkListStore* pairlist;
-  int row;
-  MSyncPair *pair;
-
-  pairlist = g_object_get_data(G_OBJECT(env->mainwindow), "syncpairstore");
-  pair = msync_get_selected_pair(env);
-  if (pair) {
-  	printf("syncing %s\n", osync_group_get_name(pair->group));
-    //sync_force_sync(pair);
-  }
+void msync_synchronize(void)
+{
+	MSyncPair *pair = msync_get_selected_pair(env);
+	if (pair) {
+		pair->read = 0;
+		pair->written = 0;
+		OSyncError *error = NULL;
+		if (!osync_engine_synchronize(pair->engine, &error)) {
+			printf("Error while starting synchronization: %s\n", error->message);
+			msync_set_pairlist_status(pair, "Error starting sync");
+			osync_error_free(&error);
+			return;
+		}
+		msync_set_pairlist_status(pair, "Syncing");
+	}
 }
 
 /*
@@ -1114,41 +1123,14 @@ void sync_plugin_window_closed() {
   pluginwindow = NULL;
 }*/
 
-/*gboolean do_main_quit(gpointer data) {
-  int n;
-  char *sockname;
-  for (n = 0; n < g_list_length(syncpairlist); n++) {
-    sync_pair *pair = g_list_nth_data(syncpairlist, n);
-    if (pair->thread_running) {
-      pair->thread_running = FALSE;
-      sync_quit(pair, do_main_quit, NULL);
-      return(FALSE);
-    }
-  }
-  sockname = g_strdup_printf("/tmp/multisync-%s", g_get_user_name());
-  if (procsockfd >= 0) {
-    close(procsockfd);
-    procsockfd = -1;
-  }
-  unlink(sockname); // Remove the socket
-  g_free(sockname);
-  exit(0);
+void msync_main_quit(void) {
+	GList *p;
+	for (p = env->syncpairs; p; p = p->next) {
+		MSyncPair *pair = p->data;
+		osync_engine_finalize(pair->engine);
+	}
+	gtk_main_quit();
 }
-
-// Quit in a nice way
-void main_quit(void) {
-  int n;
-  mainwindow_save_size();
-  for (n = 0; n < g_list_length(syncpairlist); n++) {
-    sync_pair *pair = g_list_nth_data(syncpairlist, n);
-    if (pair->thread_running) {
-      pair->thread_running = FALSE;
-      sync_quit(pair, do_main_quit, NULL);
-      return;
-    }
-  }
-  exit(0);
-}*/
 
 
 gboolean msync_okcanceldialog(char *text, gboolean okcancel) {
@@ -1303,12 +1285,6 @@ gboolean sync_open_process_socket() {
   return(TRUE);
 }*/
 
-void msync_show_main(MSyncEnv *env)
-{
-	printf("msync_show_main()\n");
-	gtk_idle_add(msync_open_mainwindow, env);
-}
-
 /*
 void sync_show_msg(char *msg) {
   GtkWidget *sync_message;
@@ -1336,59 +1312,9 @@ typedef struct  {
   changed_object *secondobj;
   gboolean sameuid;
 } sync_ask_duplicate_arg;
+*/
 
-gboolean sync_do_ask_duplicate(gpointer data) {
-  GtkWidget *dupwin;
-  sync_ask_duplicate_arg *arg = data;
-  GtkTextBuffer *buffer;
-  char *objstring, *name, *tmp;
-
-  dupwin = create_duplicatewin();
-  gtk_object_set_data(GTK_OBJECT(dupwin), "syncpair", arg->pair);
-  if (arg->sameuid)
-    gtk_label_set_label(GTK_LABEL(lookup_widget(dupwin, "reasonlabel")),
-			"This entry has been modified on both sides, but the"
-			" modifications are not the same.\n"
-			"How should MultiSync proceed?");
-  else
-    gtk_label_set_label(GTK_LABEL(lookup_widget(dupwin, "reasonlabel")),
-			"The following two entries are similar but not "
-			"exactly equal.\n"
-			"How should MultiSync proceed?");
-  buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(lookup_widget(dupwin, "firsttextview")));
-  objstring = sync_object_string(arg->firstobj);
-  gtk_text_buffer_set_text(buffer, objstring, strlen(objstring));
-  buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(lookup_widget(dupwin, "secondtextview")));
-  g_free(objstring);
-  objstring = sync_object_string(arg->secondobj);
-  gtk_text_buffer_set_text(buffer, objstring, strlen(objstring));
-  g_free(objstring);
-  
-  name = sync_pair_to_string(arg->pair);
-  tmp = g_strdup_printf("<span weight='bold'>%s</span>", name);
-  gtk_label_set_label(GTK_LABEL(lookup_widget(dupwin, "syncpairlabel")),
-		      tmp);
-  g_free(tmp);
-  g_free(name);
-
-  if (arg->pair->localclient) {
-    name = g_strdup_printf("Entry from %s (first plugin):", arg->pair->localclient->longname);
-    gtk_label_set_label(GTK_LABEL(lookup_widget(dupwin, "firstlabel")),
-			name);
-    g_free(name);
-  }
-  if (arg->pair->remoteclient) {
-    name = g_strdup_printf("Entry from %s (second plugin):", arg->pair->remoteclient->longname);
-    gtk_label_set_label(GTK_LABEL(lookup_widget(dupwin, "secondlabel")),
-			name);
-    g_free(name);
-  }
-
-  gtk_widget_show(dupwin);
-  g_free(arg);
-  return(FALSE);
-}
-
+/*
 char *msync_pair_to_string(MSyncPair *pair) {
   char *name NULL;
   

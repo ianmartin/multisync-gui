@@ -31,12 +31,16 @@ typedef struct MSyncEnv {
 	GtkWidget* optionwindow;
 	GtkWidget* pluginwindow;
 	GtkWidget* logwindow;
+	GtkWidget* dupwin;
 	GList *syncpairs;
 	GList *optionplugins;
 } MSyncEnv;
 
 typedef struct MSyncPair {
 	OSyncGroup *group;
+	OSyncEngine *engine;
+	int read;
+	int written;
 } MSyncPair;
 
 typedef void (* MSyncOptionFunction) (MSyncEnv *, OSyncMember *);

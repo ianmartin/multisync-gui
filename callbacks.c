@@ -129,8 +129,8 @@ on_mainwindow_delete_event             (GtkWidget       *widget,
                                         GdkEvent        *event,
                                         gpointer         user_data)
 {
-
-  return FALSE;
+  msync_main_quit();
+  return TRUE;
 }
 
 
@@ -162,7 +162,7 @@ void
 on_exit1_activate                      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-
+  msync_main_quit();
 }
 
 
@@ -293,7 +293,7 @@ void
 on_duplicate_usefirstbutton_clicked    (GtkButton       *button,
                                         gpointer         user_data)
 {
-
+	msync_solve_conflict_choose(0);
 }
 
 
@@ -301,7 +301,7 @@ void
 on_duplicate_usesecondbutton_clicked   (GtkButton       *button,
                                         gpointer         user_data)
 {
-
+	msync_solve_conflict_choose(1);
 }
 
 
@@ -309,6 +309,6 @@ void
 on_duplicate_usebothbutton_clicked     (GtkButton       *button,
                                         gpointer         user_data)
 {
-
+	msync_solve_conflict_duplicate();
 }
 

@@ -11,6 +11,11 @@ AM_PROG_CC_STDC
 AC_HEADER_STDC
 AC_PROG_LIBTOOL
 
+XMLCFLAGS=`xml2-config --cflags`
+XMLLDFLAGS=`xml2-config --libs`
+AC_SUBST(XMLCFLAGS)
+AC_SUBST(XMLLDFLAGS)
+
 pkg_modules="libgnomeui-2.0"
 PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
 AC_SUBST(PACKAGE_CFLAGS)
@@ -19,5 +24,6 @@ AC_SUBST(PACKAGE_LIBS)
 AC_OUTPUT([
 Makefile
 file-sync/Makefile
+evolution2_sync/Makefile
 ])
 
