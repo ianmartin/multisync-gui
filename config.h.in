@@ -1,5 +1,11 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
+/* ENABLE_EVO */
+#undef ENABLE_EVO
+
+/* ENABLE_EVO2 */
+#undef ENABLE_EVO2
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 

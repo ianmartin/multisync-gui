@@ -7,9 +7,6 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
 #include <gtk/gtk.h>
 #include <gtk/gtkmain.h>
 #include <gdk/gdk.h>
@@ -18,12 +15,14 @@
 #include <pthread.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <config.h>
 
 #include "interface.h"
 #include "support.h"
 #include "gui.h"
 #include "opensync/opensync.h"
 #include "opensync/engine.h"
+
 
 typedef struct MSyncEnv {
 	OSyncEnv *osync;
