@@ -141,7 +141,6 @@ int main (int argc, char *argv[])
 
 	msync_pairs_load(env);
 	env->mainwindow = create_mainwindow();
-	env->optionwindow = create_syncpairwin();
 	msync_open_mainwindow(env);
 	
 	msync_start_groups();

@@ -36,7 +36,7 @@ void msync_show_pairlist(MSyncEnv *env) {
     MSyncPair *pair = g_list_nth_data(env->syncpairs, n);
     printf("Showing group %s\n", osync_group_get_name(pair->group));
     columns[0] = osync_group_get_name(pair->group);
-    columns[1] = "";
+    columns[1] = "Ready";
     gtk_list_store_append (pairlist, &iter);
     gtk_list_store_set(pairlist, &iter, 0, columns[0], 1, columns[1],
 		       2, pair, 3, FALSE, -1);
@@ -878,7 +878,9 @@ void filter_data_changed(char *data) {
 gboolean msync_open_syncpairwindow(gpointer data) {
   GtkWidget *button;
   MSyncPair *pair = data;
+  env->optionwindow = create_syncpairwin();
   gtk_object_set_data (GTK_OBJECT(env->optionwindow), "pair", pair);
+  
   /*if (pair->original)
     async_set_pairlist_status((sync_pair *) pair->original, 
 			      "Editing options...", 0);*/
