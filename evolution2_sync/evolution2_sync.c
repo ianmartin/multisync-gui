@@ -214,7 +214,7 @@ void msync_evo2_sync_options(MSyncEnv *env, OSyncMember *target)
 	printf("showing options for plugin evo2-sync!\n");
 	evo2_wnd_options = create_optwin();
 	OSyncError *error = NULL;
-	if (!osync_member_get_config(member, &config, &size, &error)) {
+	if (!osync_member_get_config_or_default(member, &config, &size, &error)) {
 		printf("Unable to get config: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 		return;

@@ -76,7 +76,7 @@ void msync_file_sync_options(MSyncEnv *env, OSyncMember *target)
 	int size;
 	member = target;
 	OSyncError *error = NULL;
-	if (!osync_member_get_config(member, &config, &size, &error)) {
+	if (!osync_member_get_config_or_default(member, &config, &size, &error)) {
 		printf("Unable to get config: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 		return;

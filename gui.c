@@ -761,7 +761,7 @@ void msync_edit_pair(void) {
 	MSyncPair *pair = msync_get_selected_pair(env);
 	if (!pair)
 		return;
-	if (pair->error) {
+	if (pair->error && pair->error != OSYNC_ERROR_MISCONFIGURATION) {
 		msync_show_msg_warn("Unable to edit. There was a error during initialization");
 		return;
 	}
@@ -942,6 +942,8 @@ gboolean msync_open_syncpairwindow(gpointer data) {
       localmenu = GTK_MENU(gtk_menu_new());
       remotemenu = GTK_MENU(gtk_menu_new());
       printf("about to show plugins\n");
+      GtkMenuItem *localseli = NULL, *remoteseli = NULL;
+      int localseln = 0, remoteseln = 0;
       for (n = 0; n < osync_env_num_plugins(env->osync); n++) {
 	OSyncPlugin* plugin = osync_env_nth_plugin(env->osync, n);
 	 printf("adding plugin %s\n", osync_plugin_get_name(plugin));
@@ -959,20 +961,35 @@ gboolean msync_open_syncpairwindow(gpointer data) {
 	OSyncMember *leftmember = osync_group_nth_member(pair->group, 0);
 	OSyncMember *rightmember = osync_group_nth_member(pair->group, 1);
 	if (osync_member_get_plugin(leftmember) && !strcmp(osync_plugin_get_name(plugin), osync_member_get_pluginname(leftmember))) {
-	  gtk_menu_set_active (localmenu, n);
-	  gtk_menu_item_activate(localmi);
+	  //gtk_menu_set_active (localmenu, n);
+	  localseln = n;
+	  localseli = localmi;
 	}
 	if (osync_member_get_plugin(rightmember) && !strcmp(osync_plugin_get_name(plugin), osync_member_get_pluginname(rightmember))) {
-	  gtk_menu_set_active (remotemenu, n);
-	  gtk_menu_item_activate(remotemi);
+	  //gtk_menu_set_active (remotemenu, n);
+	  remoteseli = remotemi;
+	  remoteseln = n;
 	}
 	
 		if (n == 0) {
-			localoption_selected(localmi, NULL);
-			remoteoption_selected(remotemi, NULL);
+			localseli = localmi;
+			remoteseli = remotemi;
+	  		remoteseln = n;
+	  		localseln = n;
 		}
 	
       }
+	
+	if (localseli) {
+		localoption_selected(localseli, NULL);
+		gtk_menu_item_activate(localseli);
+		gtk_menu_set_active (localmenu, localseln);
+	}
+	if (remoteseli) {
+		remoteoption_selected(remoteseli, NULL);
+		gtk_menu_item_activate(remoteseli);
+		gtk_menu_set_active (remotemenu, remoteseln);
+	}
 	
       localoption = 
 	GTK_OPTION_MENU(gtk_object_get_data(GTK_OBJECT(env->optionwindow), 

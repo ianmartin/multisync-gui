@@ -119,8 +119,8 @@ void msync_start_groups(void)
 			char *message = g_strdup_printf("Error initializing: %s", osync_error_print(&error));
 			msync_set_pairlist_status(pair, message);
 			g_free(message);
+			pair->error = osync_error_get_type(&error);
 			osync_error_free(&error);
-			pair->error = TRUE;
 			continue;
 		}
 		
