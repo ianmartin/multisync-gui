@@ -76,6 +76,8 @@ void entry_status(OSyncEngine *engine, MSyncChangeUpdate *status, void *user_dat
 		case CHANGE_SENT:
 			pair->written++;
 			break;
+		default:
+			printf("Not handling entry_status %i\n", status->type);
 	}
 	msync_set_pairlist_status(pair, "Syncing. Read %i entries, Wrote %i entries", pair->read, pair->written);
 }
