@@ -87,6 +87,8 @@ void engine_status(OSyncEngine *engine, OSyncEngineUpdate *status, void *user_da
 	MSyncPair *pair = (MSyncPair *)user_data;
 	if (status->type == ENG_ENDPHASE_DISCON)
 		msync_set_pairlist_status(pair, "Synced Successfully. Read %i entries, Wrote %i entries", pair->read, pair->written);
+	if (status->type == ENG_PREV_UNCLEAN)
+		msync_set_pairlist_status(pair, "Unclean shutdown detected. Slow-syncing now");
 }
 
 void msync_start_groups(void)
@@ -104,7 +106,7 @@ void msync_start_groups(void)
 			osync_error_free(&error);
 			continue;
 		}
-		
+		msync_set_pairlist_status(pair, "Ready");
 		//osync_engine_set_memberstatus_callback(engine, member_status);
 		osync_engine_set_changestatus_callback(pair->engine, entry_status, (void *)pair);
 		osync_engine_set_enginestatus_callback(pair->engine, engine_status, (void *)pair);
@@ -122,7 +124,7 @@ void msync_start_groups(void)
 			continue;
 		}
 		
-		msync_set_pairlist_status(pair, "Ready");
+		
 	}
 }
 
