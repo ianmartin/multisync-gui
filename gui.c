@@ -603,8 +603,15 @@ void msync_ok_syncpairwindow(void)
     save_syncpair(optionpair);
   }*/
   
-  osync_group_save(pair->group);
-  env->syncpairs = g_list_append(env->syncpairs, pair);
+  OSyncError *error = NULL;
+  if (!osync_group_save(pair->group, &error)) {
+  	printf("Unable to save group: %s\n", error->message);
+  } else {
+	  if (!g_list_find(env->syncpairs, pair)) {
+	  	osync_env_append_group(env->osync, pair->group);
+	  	env->syncpairs = g_list_append(env->syncpairs, pair);
+	  }
+  }
   
   gtk_widget_destroy(env->optionwindow);
   env->optionwindow = NULL;
@@ -623,27 +630,27 @@ void msync_ok_syncpairwindow(void)
 
 void msync_cancel_syncpairwindow(void)
 {
-  GtkWidget *button;
- /* if (pluginwindow)
-    return;
-  if (optionpair->original) {
-    sync_pair *original = (sync_pair*) optionpair->original;
-    if (!original->thread_running)
-      pthread_create(&original->syncthread, NULL, sync_main, original);
-  }
-  free_syncpair(optionpair);*/
-  gtk_widget_destroy(env->optionwindow);
-  env->optionwindow = NULL;
-  button = lookup_widget(env->mainwindow,"editbutton");
-  gtk_widget_set_sensitive(button, TRUE);
-  button = lookup_widget(env->mainwindow,"newbutton");
-  gtk_widget_set_sensitive(button, TRUE);
-  button = lookup_widget(env->mainwindow,"deletebutton");
-  gtk_widget_set_sensitive(button, TRUE);
-  button = lookup_widget(env->mainwindow,"logbutton");
-  gtk_widget_set_sensitive(button, TRUE);
-  button = lookup_widget(env->mainwindow,"syncnowbutton");
-  gtk_widget_set_sensitive(button, TRUE);
+	GtkWidget *button;
+	MSyncPair *pair = gtk_object_get_data (GTK_OBJECT(env->optionwindow), "pair");
+	
+	if (!g_list_find(env->syncpairs, pair)) {
+		//New pair
+		osync_group_free(pair->group);
+		msync_pair_free(pair);
+	}
+
+	gtk_widget_destroy(env->optionwindow);
+	env->optionwindow = NULL;
+	button = lookup_widget(env->mainwindow,"editbutton");
+	gtk_widget_set_sensitive(button, TRUE);
+	button = lookup_widget(env->mainwindow,"newbutton");
+	gtk_widget_set_sensitive(button, TRUE);
+	button = lookup_widget(env->mainwindow,"deletebutton");
+	gtk_widget_set_sensitive(button, TRUE);
+	button = lookup_widget(env->mainwindow,"logbutton");
+	gtk_widget_set_sensitive(button, TRUE);
+	button = lookup_widget(env->mainwindow,"syncnowbutton");
+	gtk_widget_set_sensitive(button, TRUE);
 }
 
 void msync_synchronize(void) {
@@ -692,23 +699,21 @@ void msync_delete_pair(void)
   }
 }
 
-void msync_open_syncpairwindow(MSyncPair *pair) {
-  //GtkListStore *pairlist = NULL;
+void msync_edit_pair(void) {
+	//GtkListStore *pairlist = NULL;
 
-  //pairlist = g_object_get_data(G_OBJECT(env->mainwindow), "syncpairstore");
-  /*if (!pair) {
-    pair = get_selected_pair();
-    if (!pair)
-      return;
-    pair = clone_syncpair(pair);
-  }*/
+	//pairlist = g_object_get_data(G_OBJECT(env->mainwindow), "syncpairstore");
+	MSyncPair *pair = msync_get_selected_pair(env);
+	if (!pair)
+		return;
+
   // Turn off sync thread before editing
   /*if (pair->original && ((sync_pair *) pair->original)->thread_running) {
     async_set_pairlist_status((sync_pair *) pair->original, "Exiting...", 0);
     sync_quit((sync_pair *) pair->original, do_open_syncpairwindow, pair);
     ((sync_pair *) pair->original)->thread_running = FALSE;
   } else*/
-	msync_do_open_syncpairwindow(pair);
+	msync_open_syncpairwindow(pair);
 }  
 
 /*
@@ -725,11 +730,40 @@ sync_filter *filter_find(sync_object_type type, sync_direction dir) {
 
 void msync_new_pair()
 {
+	GtkWidget *selected = NULL;
 	MSyncPair *pair = msync_pair_new();
 	pair->group = osync_group_new(env->osync);
-	osync_env_append_group(env->osync, pair->group);
+	
 	msync_open_syncpairwindow(pair);
+	
+	OSyncMember *leftmember = osync_member_new(pair->group);
+	GtkOptionMenu *localoption = GTK_OPTION_MENU(lookup_widget(env->optionwindow, "localoption"));
+	GtkMenu *localmenu = (GtkMenu *)gtk_option_menu_get_menu(localoption);
+	selected = gtk_menu_get_active(localmenu);
+	OSyncPlugin *leftplugin = gtk_object_get_data(GTK_OBJECT(selected), "plugin");
+	if (!osync_member_instance_plugin(leftmember, leftplugin)) {
+		printf("Unable to instance plugin with name %s\n", osync_plugin_get_name(leftplugin));
+		return;
+	}
+	
+	OSyncMember *rightmember = osync_member_new(pair->group);
+	GtkOptionMenu *remoteoption = GTK_OPTION_MENU(lookup_widget(env->optionwindow, "remoteoption"));
+	GtkMenu *remotemenu = (GtkMenu *)gtk_option_menu_get_menu(remoteoption);
+	selected = gtk_menu_get_active(remotemenu);
+	OSyncPlugin *rightplugin = gtk_object_get_data(GTK_OBJECT(selected), "plugin");
+	if (!osync_member_instance_plugin(rightmember, rightplugin)) {
+		printf("Unable to instance plugin with name %s\n", osync_plugin_get_name(rightplugin));
+		return;
+	}
 }
+
+void
+on_newbutton_clicked                   (GtkToolButton   *toolbutton,
+                                        gpointer         user_data)
+{
+	msync_new_pair();
+}
+
 /*
 void filter_type_selected(GtkMenuItem *menuitem, gpointer user_data) {
   sync_object_type type = (sync_object_type) user_data;
@@ -797,7 +831,7 @@ void filter_data_changed(char *data) {
   filter->data = g_strdup(data);
 }*/
 
-gboolean msync_do_open_syncpairwindow(gpointer data) {
+gboolean msync_open_syncpairwindow(gpointer data) {
   GtkWidget *button;
   MSyncPair *pair = data;
   gtk_object_set_data (GTK_OBJECT(env->optionwindow), "pair", pair);
@@ -814,6 +848,11 @@ gboolean msync_do_open_syncpairwindow(gpointer data) {
   gtk_widget_set_sensitive(button, FALSE);
   button = lookup_widget(env->mainwindow,"syncnowbutton");
   gtk_widget_set_sensitive(button, FALSE);
+  
+	if (osync_group_get_name(pair->group)) {
+		GtkEntry *displayname = GTK_ENTRY(lookup_widget(env->optionwindow, "displaynameentry"));
+		gtk_entry_set_text(displayname, osync_group_get_name(pair->group));
+	}
   
  /* if (pair) {
     if (!optionwindow) {*/
@@ -1044,27 +1083,33 @@ gboolean msync_do_open_syncpairwindow(gpointer data) {
   return FALSE;
 }
 
+void msync_open_localplugin_window() {
+	GtkOptionMenu *localoption = GTK_OPTION_MENU(lookup_widget(env->optionwindow, "localoption"));
+	GtkMenu *localmenu = (GtkMenu *)gtk_option_menu_get_menu(localoption);
+	GtkWidget *selected = gtk_menu_get_active(localmenu);
+	OSyncPlugin *osplugin = gtk_object_get_data(GTK_OBJECT(selected), "plugin");
+	
+	MSyncPair *pair = gtk_object_get_data(GTK_OBJECT(env->optionwindow), "pair");
+	OSyncMember *member = osync_group_get_nth_member(pair->group, 0);
+	
+	MSyncPlugin *plugin = msync_find_plugin(env, osync_plugin_get_name(osplugin));
+	plugin->options(env, member);
+}
+
+void msync_open_remoteplugin_window() {
+	GtkOptionMenu *remoteoption = GTK_OPTION_MENU(lookup_widget(env->optionwindow, "remoteoption"));
+	GtkMenu *remotemenu = (GtkMenu *)gtk_option_menu_get_menu(remoteoption);
+	GtkWidget *selected = gtk_menu_get_active(remotemenu);
+	OSyncPlugin *osplugin = gtk_object_get_data(GTK_OBJECT(selected), "plugin");
+	
+	MSyncPair *pair = gtk_object_get_data(GTK_OBJECT(env->optionwindow), "pair");
+	OSyncMember *member = osync_group_get_nth_member(pair->group, 1);
+	
+	MSyncPlugin *plugin = msync_find_plugin(env, osync_plugin_get_name(osplugin));
+	plugin->options(env, member);
+}
+
 /*
-void open_localplugin_window() {
-  sync_plugin *plugin = optionpair->localclient;
-  if (!pluginwindow && 
-      plugin && CHECK_PLUGIN(plugin, "open_option_window")) {
-    pluginwindow = CALL_PLUGIN(plugin, "open_option_window", 
-			       (optionpair,
-				CONNECTION_TYPE_LOCAL));
-  }
-}
-
-void open_remoteplugin_window() {
-  sync_plugin *plugin = optionpair->remoteclient;
-  if (!pluginwindow && 
-      plugin && CHECK_PLUGIN(plugin, "open_option_window")) {
-    pluginwindow = CALL_PLUGIN(plugin, "open_option_window", 
-			       (optionpair,
-				CONNECTION_TYPE_REMOTE));
-  }
-}
-
 void sync_plugin_window_closed() {
   pluginwindow = NULL;
 }*/

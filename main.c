@@ -8,9 +8,10 @@ int main (int argc, char *argv[])
   gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE, argc, argv, GNOME_PARAM_APP_DATADIR, PACKAGE_DATA_DIR, NULL);
 
 	printf("Starting up!\n");
-
 	env = g_malloc0(sizeof(MSyncEnv));
 	env->osync = osync_env_new();
+	
+	msync_register_plugins(env);
 	osync_env_initialize(env->osync);
 	osync_env_load_groups_dir(env->osync);
 	msync_pairs_load(env);

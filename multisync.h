@@ -32,10 +32,19 @@ typedef struct MSyncEnv {
 	GtkWidget* pluginwindow;
 	GtkWidget* logwindow;
 	GList *syncpairs;
+	GList *optionplugins;
 } MSyncEnv;
 
 typedef struct MSyncPair {
 	OSyncGroup *group;
 } MSyncPair;
 
+typedef void (* MSyncOptionFunction) (MSyncEnv *, OSyncMember *);
+
+typedef struct MSyncPlugin {
+	char *name;
+	MSyncOptionFunction options;
+} MSyncPlugin;
+
 MSyncPair *msync_pair_new(void);
+MSyncPlugin *msync_find_plugin(MSyncEnv *env, const char *);

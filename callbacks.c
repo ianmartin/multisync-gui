@@ -14,7 +14,7 @@ void
 on_localedit_clicked                   (GtkButton       *button,
                                         gpointer         user_data)
 {
-
+	msync_open_localplugin_window();
 }
 
 
@@ -22,7 +22,7 @@ void
 on_remoteedit_clicked                  (GtkButton       *button,
                                         gpointer         user_data)
 {
-
+	msync_open_remoteplugin_window();
 }
 
 
@@ -229,20 +229,11 @@ on_aboutmenu_activate                  (GtkMenuItem     *menuitem,
 
 }
 
-
-void
-on_newbutton_clicked                   (GtkToolButton   *toolbutton,
-                                        gpointer         user_data)
-{
-	msync_new_pair();
-}
-
-
 void
 on_editbutton_clicked                  (GtkToolButton   *toolbutton,
                                         gpointer         user_data)
 {
-
+	msync_edit_pair();
 }
 
 

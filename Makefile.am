@@ -1,5 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
+SUBDIRS = file-sync
+
 AM_CFLAGS = -Werror
 
 INCLUDES = \
@@ -13,11 +15,13 @@ multisync0_90_SOURCES = \
 	main.c \
 	gui.c \
 	pair.c \
+	plugins.c \
 	support.c support.h \
 	interface.c interface.h \
 	callbacks.c callbacks.h
 
-multisync0_90_LDADD = @PACKAGE_LIBS@ -lopensync -losengine
+multisync0_90_LDFLAGS = -lopensync -losengine
+multisync0_90_LDADD = @PACKAGE_LIBS@ file-sync/libfile_sync.la
 
 EXTRA_DIST = \
 	autogen.sh \
