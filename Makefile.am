@@ -2,7 +2,7 @@
 
 SUBDIRS = file-sync evolution2_sync evolution_sync
 
-AM_CFLAGS = -Werror
+AM_CFLAGS = -Wall -Werror -I$(top_srcdir)
 
 INCLUDES = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \

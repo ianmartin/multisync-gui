@@ -2,7 +2,6 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_INIT(configure.in)
 AM_INIT_AUTOMAKE(multisync-0.90, 0.08)
-AM_MAINTAINER_MODE
 AM_CONFIG_HEADER(config.h)
 
 AC_ISC_POSIX
@@ -16,7 +15,7 @@ XMLLDFLAGS=`xml2-config --libs`
 AC_SUBST(XMLCFLAGS)
 AC_SUBST(XMLLDFLAGS)
 
-pkg_modules="libgnomeui-2.0 opensync osengine"
+pkg_modules="glib-2.0 libgnomeui-2.0 opensync osengine"
 PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
 AC_SUBST(PACKAGE_CFLAGS)
 AC_SUBST(PACKAGE_LIBS)

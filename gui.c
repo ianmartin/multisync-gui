@@ -339,11 +339,8 @@ static void sync_resync_gconf_notify (GConfClient *gconf,
 gboolean msync_open_mainwindow(gpointer data) {
 	printf("msync_open_mainwindow()\n");
 	MSyncEnv *env = (MSyncEnv *)data;
-  char *filename;
   GtkCheckMenuItem *menuitem;
-  GError* err = NULL;
-  gboolean notray, nogui, showresync;
-  int w,h;
+  gboolean notray = FALSE, nogui = FALSE, showresync = FALSE;
   GtkListStore *pairlist = gtk_list_store_new(4, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_POINTER,G_TYPE_BOOLEAN);
   GtkTreeView *syncpairlist;
   GtkTreeSelection *select;
@@ -719,7 +716,6 @@ void resync_now() {
 void msync_delete_pair(void)
 {
   GtkListStore* pairlist;
-  int row;
   MSyncPair *pair;
 
   if (!msync_okcanceldialog("Are you sure you want to delete the selected pair?", TRUE))
@@ -1127,7 +1123,7 @@ gboolean msync_open_syncpairwindow(gpointer data) {
   return FALSE;
 }
 
-void msync_open_localplugin_window() {
+void msync_open_localplugin_window(void) {
 	GtkOptionMenu *localoption = GTK_OPTION_MENU(lookup_widget(env->optionwindow, "localoption"));
 	GtkMenu *localmenu = (GtkMenu *)gtk_option_menu_get_menu(localoption);
 	GtkWidget *selected = gtk_menu_get_active(localmenu);
@@ -1145,7 +1141,7 @@ void msync_open_localplugin_window() {
 	plugin->options(env, member);
 }
 
-void msync_open_remoteplugin_window() {
+void msync_open_remoteplugin_window(void) {
 	GtkOptionMenu *remoteoption = GTK_OPTION_MENU(lookup_widget(env->optionwindow, "remoteoption"));
 	GtkMenu *remotemenu = (GtkMenu *)gtk_option_menu_get_menu(remoteoption);
 	GtkWidget *selected = gtk_menu_get_active(remotemenu);

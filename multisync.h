@@ -52,3 +52,19 @@ typedef struct MSyncPlugin {
 
 MSyncPair *msync_pair_new(void);
 MSyncPlugin *msync_find_plugin(MSyncEnv *env, const char *);
+void msync_register_plugin(MSyncEnv *env, const char *name, MSyncOptionFunction function);
+void msync_show_msg_info(const char *msg);
+void msync_show_msg_warn(const char *msg);
+void msync_set_pairlist_status(MSyncPair *pair, const char *message, ...);
+void msync_register_plugins(MSyncEnv *env);
+void msync_start_groups(void);
+void msync_solve_conflict_duplicate(void);
+void msync_solve_conflict_choose(int nth);
+
+void msync_pairs_load(MSyncEnv *env);
+MSyncPair *msync_pair_new(void);
+void msync_pair_free(MSyncPair *pair);
+
+void msync_register_evo2_sync(MSyncEnv *env);
+void msync_register_evo_sync(MSyncEnv *env);
+void msync_register_file_sync(MSyncEnv *env);

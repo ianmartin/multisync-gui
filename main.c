@@ -23,7 +23,7 @@ void msync_solve_conflict_choose(int nth)
 	OSyncChange *change = osync_mapping_nth_entry(mapping, nth);
 	g_assert(change);
 	osengine_mapping_solve(pair->engine, mapping, change);
-	osync_mapping_multiply_master(pair->engine, mapping);
+	//osync_mapping_multiply_master(pair->engine, mapping);
 	msync_dupe_window_close();
 }
 
@@ -83,7 +83,7 @@ void entry_status(OSyncEngine *engine, MSyncChangeUpdate *status, void *user_dat
 void engine_status(OSyncEngine *engine, OSyncEngineUpdate *status, void *user_data)
 {
 	MSyncPair *pair = (MSyncPair *)user_data;
-	if (status->type = ENG_ENDPHASE_DISCON)
+	if (status->type == ENG_ENDPHASE_DISCON)
 		msync_set_pairlist_status(pair, "Synced Successfully. Read %i entries, Wrote %i entries", pair->read, pair->written);
 }
 
