@@ -135,12 +135,12 @@ void msync_evo2_make_config(evo2_options *options, char **data, int *size)
 {
 	xmlDocPtr doc;
 	
-	doc = xmlNewDoc("1.0");
-	doc->children = xmlNewDocNode(doc, NULL, "config", NULL);
+	doc = xmlNewDoc((xmlChar*)"1.0");
+	doc->children = xmlNewDocNode(doc, NULL, (xmlChar*)"config", NULL);
 	
-	xmlNewChild(doc->children, NULL, "adress_path", options->addressbook_path);
-	xmlNewChild(doc->children, NULL, "calendar_path", options->calendar_path);
-	xmlNewChild(doc->children, NULL, "tasks_path", options->tasks_path);
+	xmlNewChild(doc->children, NULL, (xmlChar*)"adress_path", (xmlChar*)options->addressbook_path);
+	xmlNewChild(doc->children, NULL, (xmlChar*)"calendar_path", (xmlChar*)options->calendar_path);
+	xmlNewChild(doc->children, NULL, (xmlChar*)"tasks_path", (xmlChar*)options->tasks_path);
 	
 	xmlDocDumpMemory(doc, (xmlChar **)data, size);
 	*size++;
@@ -176,7 +176,7 @@ osync_bool msync_evo2_parse_config(evo2_options *options, char *data, int size)
 		return FALSE;
 	}
 
-	if (xmlStrcmp(cur->name, "config")) {
+	if (xmlStrcmp(cur->name, (xmlChar*)"config")) {
 		printf("EVO2-SYNC data seems not to be a valid configdata.\n");
 		xmlFreeDoc(doc);
 		return FALSE;
@@ -185,7 +185,7 @@ osync_bool msync_evo2_parse_config(evo2_options *options, char *data, int size)
 	cur = cur->xmlChildrenNode;
 
 	while (cur != NULL) {
-		char *str = xmlNodeGetContent(cur);
+		char *str = (char*)xmlNodeGetContent(cur);
 		if (str) {
 			if (!xmlStrcmp(cur->name, (const xmlChar *)"adress_path")) {
 				options->addressbook_path = g_strdup(str);

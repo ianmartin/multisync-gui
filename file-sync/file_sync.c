@@ -42,7 +42,7 @@ static osync_bool fs_parse_settings(fs_options *env, char *data, int size, OSync
 		return FALSE;
 	}
 
-	if (xmlStrcmp(cur->name, "config")) {
+	if (xmlStrcmp(cur->name, (xmlChar*)"config")) {
 		xmlFreeDoc(doc);
 		osync_error_set(error, OSYNC_ERROR_GENERIC, "Config valid is not valid");
 		osync_trace(TRACE_EXIT_ERROR, "%s: %s", __func__, osync_error_print(error));
@@ -52,7 +52,7 @@ static osync_bool fs_parse_settings(fs_options *env, char *data, int size, OSync
 	cur = cur->xmlChildrenNode;
 
 	while (cur != NULL) {
-		char *str = xmlNodeGetContent(cur);
+		char *str = (char*)xmlNodeGetContent(cur);
 		if (str) {
 			if (!xmlStrcmp(cur->name, (const xmlChar *)"path")) {
 				env->path = g_strdup(str);
@@ -119,11 +119,11 @@ static void msync_fs_make_config(fs_options *options, char **data, int *size)
 {
 	xmlDocPtr doc;
 	
-	doc = xmlNewDoc("1.0");
-	doc->children = xmlNewDocNode(doc, NULL, "config", NULL);
+	doc = xmlNewDoc((xmlChar*)"1.0");
+	doc->children = xmlNewDocNode(doc, NULL, (xmlChar*)"config", NULL);
 	
-	xmlNewChild(doc->children, NULL, "path", options->path);
-	xmlNewChild(doc->children, NULL, "recursive", options->recursive ? "TRUE" : "FALSE");
+	xmlNewChild(doc->children, NULL, (xmlChar*)"path", (xmlChar*)options->path);
+	xmlNewChild(doc->children, NULL, (xmlChar*)"recursive", (xmlChar*)(options->recursive ? "TRUE" : "FALSE"));
 	
 	xmlDocDumpMemory(doc, (xmlChar **)data, size);
 	*size++;
