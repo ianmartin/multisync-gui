@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = file-sync evolution2_sync
+SUBDIRS = file-sync evolution2_sync evolution_sync
 
 AM_CFLAGS = -Werror
 
@@ -20,7 +20,10 @@ multisync0_90_SOURCES = \
 	interface.c interface.h \
 	callbacks.c callbacks.h
 
-multisync0_90_LDADD = @PACKAGE_LIBS@ file-sync/libfile_sync.la evolution2_sync/libevo2_sync.la
+multisync0_90_LDADD = @PACKAGE_LIBS@ \
+	file-sync/libfile_sync.la \
+	evolution2_sync/libevo2_sync.la \
+	evolution_sync/libevo_sync.la
 
 EXTRA_DIST = \
 	autogen.sh \

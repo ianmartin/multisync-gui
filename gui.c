@@ -1138,6 +1138,10 @@ void msync_open_localplugin_window() {
 	OSyncMember *member = osync_group_nth_member(pair->group, 0);
 	
 	MSyncPlugin *plugin = msync_find_plugin(env, osync_plugin_get_name(osplugin));
+	if (!plugin) {
+		printf("Unable to find MSyncPlugin!!!\n");
+		return;
+	}
 	plugin->options(env, member);
 }
 
@@ -1151,6 +1155,10 @@ void msync_open_remoteplugin_window() {
 	OSyncMember *member = osync_group_nth_member(pair->group, 1);
 	
 	MSyncPlugin *plugin = msync_find_plugin(env, osync_plugin_get_name(osplugin));
+	if (!plugin) {
+		printf("Unable to find MSyncPlugin!!!\n");
+		return;
+	}
 	plugin->options(env, member);
 }
 

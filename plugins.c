@@ -27,4 +27,5 @@ void msync_register_plugins(MSyncEnv *env)
 	printf("register plugins %p\n", env);
 	msync_register_file_sync(env);
 	msync_register_evo2_sync(env);
+	msync_register_evo_sync(env);
 }
