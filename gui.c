@@ -1165,7 +1165,7 @@ void msync_main_quit(void) {
 		MSyncPair *pair = p->data;
 		if (pair->engine) {
 			osync_engine_finalize(pair->engine);
-			osync_engine_free(engine);
+			osync_engine_free(pair->engine);
 		}
 	}
 	gtk_main_quit();

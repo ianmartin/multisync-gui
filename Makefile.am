@@ -20,7 +20,6 @@ multisync0_90_SOURCES = \
 	interface.c interface.h \
 	callbacks.c callbacks.h
 
-multisync0_90_LDFLAGS = -lopensync -losengine
 multisync0_90_LDADD = @PACKAGE_LIBS@ file-sync/libfile_sync.la evolution2_sync/libevo2_sync.la
 
 EXTRA_DIST = \

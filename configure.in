@@ -16,7 +16,7 @@ XMLLDFLAGS=`xml2-config --libs`
 AC_SUBST(XMLCFLAGS)
 AC_SUBST(XMLLDFLAGS)
 
-pkg_modules="libgnomeui-2.0"
+pkg_modules="libgnomeui-2.0 opensync osengine"
 PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
 AC_SUBST(PACKAGE_CFLAGS)
 AC_SUBST(PACKAGE_LIBS)
