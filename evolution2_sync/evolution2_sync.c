@@ -27,7 +27,15 @@ void fill_calendar_menu(OSyncMember *member, char *selected)
 	gtk_object_set_data (GTK_OBJECT (menuitem), "uri", NULL);
 	gtk_menu_item_activate(GTK_MENU_ITEM(menuitem));
 	
-	GList *calendars = osync_member_call_plugin(member, "evo2_list_calendars", NULL);
+	OSyncError *error = NULL;
+	GList *calendars = osync_member_call_plugin(member, "evo2_list_calendars", NULL, &error);
+	if (osync_error_is_set(&error)) {
+		printf("Unable to call plugin: %s\n", error->message);
+		osync_error_free(&error);
+		return;
+	}
+	
+	
 	GList *c;
 	int n = 1;
 	for (c = calendars; c; c = c->next) {
@@ -188,7 +196,12 @@ void msync_evo2_sync_options(MSyncEnv *env, OSyncMember *target)
 	member = target;
 	printf("showing options for plugin evo2-sync!\n");
 	evo2_wnd_options = create_optwin();
-	osync_member_get_config(member, &config, &size);
+	OSyncError *error = NULL;
+	if (!osync_member_get_config(member, &config, &size, &error)) {
+		printf("Unable to get config: %s\n", error->message);
+		osync_error_free(&error);
+		return;
+	}
 	
 	//Parse config
 	options = g_malloc0(sizeof(evo2_options));

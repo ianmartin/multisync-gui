@@ -10,7 +10,12 @@ void msync_file_sync_options(MSyncEnv *env, OSyncMember *target)
 	char *config;
 	int size;
 	member = target;
-	osync_member_get_config(member, &config, &size);
+	OSyncError *error = NULL;
+	if (!osync_member_get_config(member, &config, &size, &error)) {
+		printf("Unable to get config: %s\n", error->message);
+		osync_error_free(&error);
+		return;
+	}
 	printf("showing options for plugin file-sync!\n");
 	file_wnd_options = create_wnd_options();
 	GtkEntry *entry = GTK_ENTRY(lookup_widget(file_wnd_options, "txt_path"));

@@ -701,7 +701,12 @@ void msync_delete_pair(void)
   pairlist = g_object_get_data(G_OBJECT(env->mainwindow), "syncpairstore");
   pair = msync_get_selected_pair(env);
   if (pair) {
-    osync_group_delete(pair->group);
+  	OSyncError *error = NULL;
+    if (!osync_group_delete(pair->group, &error)) {
+		printf("Unable to delete pair: %s\n", error->message);
+		osync_error_free(&error);
+		return;
+	}
     env->syncpairs = g_list_remove(env->syncpairs, pair);
     msync_pair_free(pair);
     msync_show_pairlist(env);
@@ -739,6 +744,7 @@ sync_filter *filter_find(sync_object_type type, sync_direction dir) {
 
 void msync_new_pair()
 {
+	OSyncError *error = NULL;
 	GtkWidget *selected = NULL;
 	MSyncPair *pair = msync_pair_new();
 	pair->group = osync_group_new(env->osync);
@@ -750,8 +756,9 @@ void msync_new_pair()
 	GtkMenu *localmenu = (GtkMenu *)gtk_option_menu_get_menu(localoption);
 	selected = gtk_menu_get_active(localmenu);
 	OSyncPlugin *leftplugin = gtk_object_get_data(GTK_OBJECT(selected), "plugin");
-	if (!osync_member_instance_plugin(leftmember, leftplugin)) {
-		printf("Unable to instance plugin with name %s\n", osync_plugin_get_name(leftplugin));
+	if (!osync_member_instance_plugin(leftmember, leftplugin, &error)) {
+		printf("Unable to instance plugin with name %s: %s\n", osync_plugin_get_name(leftplugin), error->message);
+		osync_error_free(&error);
 		return;
 	}
 	
@@ -760,8 +767,9 @@ void msync_new_pair()
 	GtkMenu *remotemenu = (GtkMenu *)gtk_option_menu_get_menu(remoteoption);
 	selected = gtk_menu_get_active(remotemenu);
 	OSyncPlugin *rightplugin = gtk_object_get_data(GTK_OBJECT(selected), "plugin");
-	if (!osync_member_instance_plugin(rightmember, rightplugin)) {
-		printf("Unable to instance plugin with name %s\n", osync_plugin_get_name(rightplugin));
+	if (!osync_member_instance_plugin(rightmember, rightplugin, &error)) {
+		printf("Unable to instance plugin with name %s: %s\n", osync_plugin_get_name(rightplugin), error->message);
+		osync_error_free(&error);
 		return;
 	}
 }

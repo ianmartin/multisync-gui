@@ -122,7 +122,7 @@ void msync_start_groups(void)
 
 int main (int argc, char *argv[])
 {
-
+	OSyncError *error = NULL;
   gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE, argc, argv, GNOME_PARAM_APP_DATADIR, PACKAGE_DATA_DIR, NULL);
 
 	printf("Starting up!\n");
@@ -130,8 +130,13 @@ int main (int argc, char *argv[])
 	env->osync = osync_env_new();
 	
 	msync_register_plugins(env);
-	osync_env_initialize(env->osync);
-	osync_env_load_groups_dir(env->osync);
+	
+	if (!osync_env_initialize(env->osync, &error)) {
+		printf("Unable to initialize: %s\n", error->message);
+		osync_error_free(&error);
+		return 1;
+	}
+
 	msync_pairs_load(env);
 	env->mainwindow = create_mainwindow();
 	env->optionwindow = create_syncpairwin();
