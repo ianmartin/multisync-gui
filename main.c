@@ -93,6 +93,8 @@ void msync_start_groups(void)
 	for (p = env->syncpairs; p; p = p->next) {
 		MSyncPair *pair = p->data;
 		OSyncError *error = NULL;
+		if (pair->engine)
+			continue;
 		pair->engine = osync_engine_new(pair->group, &error);
 		if (!pair->engine) {
 			printf("Error while creating syncengine: %s\n", error->message);

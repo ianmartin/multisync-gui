@@ -6,6 +6,7 @@ void msync_register_plugin(MSyncEnv *env, const char *name, MSyncOptionFunction 
 	plugin->name = g_strdup(name);
 	plugin->options = function;
 	printf("env %p\n", env);
+	printf("name %s\n", plugin->name);
 	printf("option %p\n", env->optionplugins);
 	env->optionplugins = g_list_append(env->optionplugins, plugin);
 }

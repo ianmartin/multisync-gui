@@ -1,6 +1,7 @@
 #include "multisync.h"
 #include "interface.h"
 #include "callbacks.h"
+#include "opensync/evo2_sync.h"
 
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
@@ -35,17 +36,15 @@ void fill_calendar_menu(OSyncMember *member, char *selected)
 		return;
 	}
 	
-	
 	GList *c;
 	int n = 1;
 	for (c = calendars; c; c = c->next) {
-		char *uri = NULL;
-		char *name = NULL;
-		sscanf(c->data, "%[^:]%s", uri, name);
-		menuitem = gtk_menu_item_new_with_label(name);
+		evo2_location *path = c->data;
+		menuitem = gtk_menu_item_new_with_label(path->name);
 		gtk_menu_append (GTK_MENU (calendarmenu), menuitem);
-		gtk_object_set_data (GTK_OBJECT (menuitem), "uri", uri);
-		if (selected && !strcmp(uri, selected)) {
+		gtk_object_set_data (GTK_OBJECT (menuitem), "uri", path->uri);
+		//FIXME free the evo2_location somewhere!
+		if (selected && !strcmp(path->uri, selected)) {
 			gtk_menu_item_activate(GTK_MENU_ITEM(menuitem));
 			gtk_menu_set_active (GTK_MENU(calendarmenu), n);
 		}
@@ -56,82 +55,97 @@ void fill_calendar_menu(OSyncMember *member, char *selected)
 	gtk_widget_show_all(GTK_WIDGET(calendarmenu));
 }
 
-/*
-void fill_tasks_menu(char *selected)
+void fill_tasks_menu(OSyncMember *member, char *selected)
 {
-        GtkWidget *menuitem;
-        GtkWidget *tasksmenu;
-        tasksmenu = gtk_menu_new ();
-        ESourceList *sources;
-        ESource *source;
-
-        menuitem = gtk_menu_item_new_with_label ("No Tasks");
-        gtk_menu_append (GTK_MENU (tasksmenu), menuitem);
-        gtk_object_set_data (GTK_OBJECT (menuitem), "uri", NULL);
-        gtk_menu_item_activate(GTK_MENU_ITEM(menuitem));
-
-        if (!e_cal_get_sources(&sources, E_CAL_SOURCE_TYPE_TODO, NULL)) {
-                return;
-        }
-
-        int n = 1;
-        GSList *g;
-        for (g = e_source_list_peek_groups (sources); g; g = g->next) {
-                ESourceGroup *group = E_SOURCE_GROUP (g->data);
-                GSList *s;
-                for (s = e_source_group_peek_sources (group); s; s = s->next) {
-                        source = E_SOURCE (s->data);
-                        menuitem = gtk_menu_item_new_with_label (e_source_peek_name(source));
-                        gtk_menu_append (GTK_MENU (tasksmenu), menuitem);
-                        gtk_object_set_data (GTK_OBJECT (menuitem), "uri", e_source_get_uri(source));
-                        if (selected && !strcmp(e_source_get_uri(source), selected)) {
-                                gtk_menu_item_activate(GTK_MENU_ITEM(menuitem));
-                                gtk_menu_set_active (GTK_MENU(tasksmenu), n);
-                        }
-                        n++;
-                }
-        }
-        gtk_option_menu_set_menu (GTK_OPTION_MENU(lookup_widget(evowindow, "todomenu")), tasksmenu);
-        gtk_widget_show_all(GTK_WIDGET(tasksmenu));
+	GtkWidget *menuitem;
+	GtkWidget *tasksmenu;
+	tasksmenu = gtk_menu_new ();
+	
+	menuitem = gtk_menu_item_new_with_label ("No Tasks");
+	gtk_menu_append (GTK_MENU (tasksmenu), menuitem);
+	gtk_object_set_data (GTK_OBJECT (menuitem), "uri", NULL);
+	gtk_menu_item_activate(GTK_MENU_ITEM(menuitem));
+	
+	OSyncError *error = NULL;
+	GList *tasks = osync_member_call_plugin(member, "evo2_list_tasks", NULL, &error);
+	if (osync_error_is_set(&error)) {
+		printf("Unable to call plugin: %s\n", error->message);
+		osync_error_free(&error);
+		return;
+	}
+	
+	GList *c;
+	int n = 1;
+	for (c = tasks; c; c = c->next) {
+		evo2_location *path = c->data;
+		menuitem = gtk_menu_item_new_with_label(path->name);
+		gtk_menu_append (GTK_MENU (tasksmenu), menuitem);
+		gtk_object_set_data (GTK_OBJECT (menuitem), "uri", path->uri);
+		//FIXME free the evo2_location somewhere!
+		if (selected && !strcmp(path->uri, selected)) {
+			gtk_menu_item_activate(GTK_MENU_ITEM(menuitem));
+			gtk_menu_set_active (GTK_MENU(tasksmenu), n);
+		}
+		n++;
+	}
+			
+	gtk_option_menu_set_menu (GTK_OPTION_MENU(lookup_widget(evo2_wnd_options, "todomenu")), tasksmenu);
+	gtk_widget_show_all(GTK_WIDGET(tasksmenu));
 }
 
-void fill_addressbook_menu(char *selected)
+void fill_addressbook_menu(OSyncMember *member, char *selected)
 {
-        GtkWidget *menuitem;
-        GtkWidget *addressbookmenu;
-        addressbookmenu = gtk_menu_new ();
-        ESourceList *sources;
-        ESource *source;
+	GtkWidget *menuitem;
+	GtkWidget *addressbookmenu;
+	addressbookmenu = gtk_menu_new ();
+	
+	menuitem = gtk_menu_item_new_with_label ("No Addressbook");
+	gtk_menu_append (GTK_MENU (addressbookmenu), menuitem);
+	gtk_object_set_data (GTK_OBJECT (menuitem), "uri", NULL);
+	gtk_menu_item_activate(GTK_MENU_ITEM(menuitem));
+	
+	OSyncError *error = NULL;
+	GList *tasks = osync_member_call_plugin(member, "evo2_list_addressbooks", NULL, &error);
+	if (osync_error_is_set(&error)) {
+		printf("Unable to call plugin: %s\n", error->message);
+		osync_error_free(&error);
+		return;
+	}
+	
+	GList *c;
+	int n = 1;
+	for (c = tasks; c; c = c->next) {
+		evo2_location *path = c->data;
+		menuitem = gtk_menu_item_new_with_label(path->name);
+		gtk_menu_append (GTK_MENU (addressbookmenu), menuitem);
+		gtk_object_set_data (GTK_OBJECT (menuitem), "uri", path->uri);
+		//FIXME free the evo2_location somewhere!
+		if (selected && !strcmp(path->uri, selected)) {
+			gtk_menu_item_activate(GTK_MENU_ITEM(menuitem));
+			gtk_menu_set_active (GTK_MENU(addressbookmenu), n);
+		}
+		n++;
+	}
+			
+	gtk_option_menu_set_menu (GTK_OPTION_MENU(lookup_widget(evo2_wnd_options, "addressbookmenu")), addressbookmenu);
+	gtk_widget_show_all(GTK_WIDGET(addressbookmenu));
+}
 
-        menuitem = gtk_menu_item_new_with_label ("No Addressbook");
-        gtk_menu_append (GTK_MENU (addressbookmenu), menuitem);
-        gtk_object_set_data (GTK_OBJECT (menuitem), "uri", NULL);
-        gtk_menu_item_activate(GTK_MENU_ITEM(menuitem));
+void msync_evo2_make_config(evo2_options *options, char **data, int *size)
+{
+	xmlDocPtr doc;
+	
+	doc = xmlNewDoc("1.0");
+	doc->children = xmlNewDocNode(doc, NULL, "config", NULL);
+	
+	xmlNewChild(doc->children, NULL, "adress_path", options->addressbook_path);
+	xmlNewChild(doc->children, NULL, "calendar_path", options->calendar_path);
+	xmlNewChild(doc->children, NULL, "tasks_path", options->tasks_path);
+	
+	xmlDocDumpMemory(doc, (xmlChar **)data, size);
+	*size++;
+}
 
-        if (!e_book_get_addressbooks(&sources, NULL)) {
-                return;
-        }
-
-        GSList *g;
-        int n = 1;
-        for (g = e_source_list_peek_groups (sources); g; g = g->next) {
-                ESourceGroup *group = E_SOURCE_GROUP (g->data);
-                GSList *s;
-                for (s = e_source_group_peek_sources (group); s; s = s->next) {
-                        source = E_SOURCE (s->data);
-                        menuitem = gtk_menu_item_new_with_label (e_source_peek_name(source));
-                        gtk_menu_append (GTK_MENU (addressbookmenu), menuitem);
-                        gtk_object_set_data (GTK_OBJECT (menuitem), "uri", e_source_get_uri(source));
-                        if (selected && !strcmp(e_source_get_uri(source), selected)) {
-                                gtk_menu_item_activate(GTK_MENU_ITEM(menuitem));
-                                gtk_menu_set_active (GTK_MENU(addressbookmenu), n);
-                        }
-                        n++;
-                }
-        }
-        gtk_option_menu_set_menu (GTK_OPTION_MENU(lookup_widget(evowindow, "addressbookmenu")), addressbookmenu);
-        gtk_widget_show_all(GTK_WIDGET(addressbookmenu));
-}*/
 
 osync_bool msync_evo2_parse_config(evo2_options *options, char *data, int size)
 {
@@ -144,10 +158,13 @@ osync_bool msync_evo2_parse_config(evo2_options *options, char *data, int size)
 	options->calendar_path = NULL;
 	options->tasks_path = NULL;
 
+	printf("Config data: %s\n", data);
+
 	doc = xmlParseMemory(data, size);
 
 	if (!doc) {
 		printf("EVO2-SYNC Could not parse data!\n");
+		msync_show_msg_warn("Unable to open options.\nCould not parse configuration data");
 		return FALSE;
 	}
 
@@ -209,8 +226,8 @@ void msync_evo2_sync_options(MSyncEnv *env, OSyncMember *target)
 		return;
 	
 	fill_calendar_menu(target, options->calendar_path);
-	//fill_tasks_menu(options->tasks_path);
-	//fill_addressbook_menu(options->addressbook_path);
+	fill_tasks_menu(target, options->tasks_path);
+	fill_addressbook_menu(target, options->addressbook_path);
 	
 	gtk_widget_show (evo2_wnd_options);
 	g_free(config);
@@ -244,9 +261,23 @@ void
 evo2_okbutton_clicked                  (GtkButton       *button,
                                         gpointer         user_data)
 {
-	/*GtkEntry *entry = GTK_ENTRY(lookup_widget(file_wnd_options, "txt_path"));
-	const char *config = gtk_entry_get_text(entry);
-	osync_member_set_config(member, config, strlen(config) + 1);*/
+	GtkWidget *item;
+	item = gtk_option_menu_get_menu (GTK_OPTION_MENU (lookup_widget(evo2_wnd_options, "addressbookmenu")));
+	item = gtk_menu_get_active (GTK_MENU (item));
+	options->addressbook_path = gtk_object_get_data (GTK_OBJECT (item), "uri");
+	
+	item = gtk_option_menu_get_menu (GTK_OPTION_MENU (lookup_widget(evo2_wnd_options, "calendarmenu")));
+	item = gtk_menu_get_active (GTK_MENU (item));
+	options->calendar_path = gtk_object_get_data (GTK_OBJECT (item), "uri");
+	
+	item = gtk_option_menu_get_menu (GTK_OPTION_MENU (lookup_widget(evo2_wnd_options, "todomenu")));
+	item = gtk_menu_get_active (GTK_MENU (item));
+	options->tasks_path = gtk_object_get_data (GTK_OBJECT (item), "uri");
+	
+	char *config = NULL;
+	int size = 0;
+	msync_evo2_make_config(options, &config, &size);
+	osync_member_set_config(member, config, size);
 	gtk_widget_destroy(evo2_wnd_options);
 	evo2_wnd_options = NULL;
 }
