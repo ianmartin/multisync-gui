@@ -467,8 +467,13 @@ void localoption_selected(GtkMenuItem *menuitem, gpointer user_data) {
 		osync_error_free(&error);
 		return;
 	}
+	  
+	if (osync_member_has_configuration(member))
+		gtk_widget_set_sensitive(lookup_widget(env->optionwindow, "localedit"), TRUE);
+	else
+		gtk_widget_set_sensitive(lookup_widget(env->optionwindow, "localedit"), FALSE);
   
-  /*localedit = GTK_BUTTON(lookup_widget(optionwindow, "localedit"));
+  /*localedit = GTK_BUTTON();
   pair->localclient = plugin;
   if (pair->localname)
     g_free(pair->localname);
@@ -496,6 +501,14 @@ void remoteoption_selected(GtkMenuItem *menuitem, gpointer user_data) {
 		osync_error_free(&error);
 		return;
 	}
+	
+	printf("remote\n");
+	if (osync_member_has_configuration(member)) {
+		printf("true\n");
+		gtk_widget_set_sensitive(lookup_widget(env->optionwindow, "remoteedit"), TRUE);
+	} else
+		gtk_widget_set_sensitive(lookup_widget(env->optionwindow, "remoteedit"), FALSE);
+	
   /*
   sync_plugin *plugin;
   sync_pair *pair;
@@ -503,7 +516,7 @@ void remoteoption_selected(GtkMenuItem *menuitem, gpointer user_data) {
   GtkButton *remoteedit;
   pair = optionpair;
   plugin = (sync_plugin*) gtk_object_get_data (GTK_OBJECT (menuitem), "plugin");
-  remoteedit = GTK_BUTTON(lookup_widget(optionwindow, "remoteedit"));
+  remoteedit = GTK_BUTTON();
   pair->remoteclient = plugin;
   if (pair->remotename)
     g_free(pair->remotename);
@@ -953,6 +966,12 @@ gboolean msync_open_syncpairwindow(gpointer data) {
 	  gtk_menu_set_active (remotemenu, n);
 	  gtk_menu_item_activate(remotemi);
 	}
+	
+		if (n == 0) {
+			localoption_selected(localmi, NULL);
+			remoteoption_selected(remotemi, NULL);
+		}
+	
       }
 	
       localoption = 
