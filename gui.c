@@ -883,7 +883,7 @@ gboolean msync_open_syncpairwindow(gpointer data) {
       remotemenu = GTK_MENU(gtk_menu_new());
       printf("about to show plugins\n");
       for (n = 0; n < osync_env_num_plugins(env->osync); n++) {
-	OSyncPlugin* plugin = osync_env_get_nth_plugin(env->osync, n);
+	OSyncPlugin* plugin = osync_env_nth_plugin(env->osync, n);
 	 printf("adding plugin %s\n", osync_plugin_get_name(plugin));
 	GtkMenuItem *localmi, *remotemi;
 	localmi = 
@@ -1099,7 +1099,7 @@ void msync_open_localplugin_window() {
 	OSyncPlugin *osplugin = gtk_object_get_data(GTK_OBJECT(selected), "plugin");
 	
 	MSyncPair *pair = gtk_object_get_data(GTK_OBJECT(env->optionwindow), "pair");
-	OSyncMember *member = osync_group_get_nth_member(pair->group, 0);
+	OSyncMember *member = osync_group_nth_member(pair->group, 0);
 	
 	MSyncPlugin *plugin = msync_find_plugin(env, osync_plugin_get_name(osplugin));
 	plugin->options(env, member);
@@ -1112,7 +1112,7 @@ void msync_open_remoteplugin_window() {
 	OSyncPlugin *osplugin = gtk_object_get_data(GTK_OBJECT(selected), "plugin");
 	
 	MSyncPair *pair = gtk_object_get_data(GTK_OBJECT(env->optionwindow), "pair");
-	OSyncMember *member = osync_group_get_nth_member(pair->group, 1);
+	OSyncMember *member = osync_group_nth_member(pair->group, 1);
 	
 	MSyncPlugin *plugin = msync_find_plugin(env, osync_plugin_get_name(osplugin));
 	plugin->options(env, member);

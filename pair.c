@@ -16,9 +16,9 @@ void msync_pair_free(MSyncPair *pair)
 void msync_pairs_load(MSyncEnv *env)
 {
 	int i;
-	for (i = 0; i < osync_num_groups(env->osync); i++) {
+	for (i = 0; i < osync_env_num_groups(env->osync); i++) {
 		MSyncPair *pair = msync_pair_new();
-		pair->group = osync_get_nth_group(env->osync, i);
+		pair->group = osync_env_nth_group(env->osync, i);
 		env->syncpairs = g_list_append(env->syncpairs, pair);
 		printf("loaded group %s\n", osync_group_get_name(pair->group));
 	}
