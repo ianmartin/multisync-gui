@@ -21,7 +21,7 @@
 #include "support.h"
 #include "gui.h"
 #include "opensync/opensync.h"
-#include "opensync/engine.h"
+#include "osengine/engine.h"
 
 
 typedef struct MSyncEnv {
