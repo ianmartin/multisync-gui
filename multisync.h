@@ -68,3 +68,4 @@ void msync_pair_free(MSyncPair *pair);
 void msync_register_evo2_sync(MSyncEnv *env);
 void msync_register_evo_sync(MSyncEnv *env);
 void msync_register_file_sync(MSyncEnv *env);
+void msync_register_synce_sync(MSyncEnv *env);

@@ -1185,7 +1185,7 @@ void msync_open_localplugin_window(void) {
 	
 	MSyncPlugin *plugin = msync_find_plugin(env, osync_plugin_get_name(osplugin));
 	if (!plugin) {
-		printf("Unable to find MSyncPlugin!!!\n");
+		printf("Unable to find MSyncPlugin (%s)!!!\n", osync_plugin_get_name(osplugin));
 		return;
 	}
 	plugin->options(env, member);

@@ -32,4 +32,5 @@ void msync_register_plugins(MSyncEnv *env)
 #ifdef ENABLE_EVO
 	msync_register_evo_sync(env);
 #endif
+	msync_register_synce_sync(env);
 }
