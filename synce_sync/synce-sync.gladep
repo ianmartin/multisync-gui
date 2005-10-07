@@ -2,8 +2,8 @@
 <!DOCTYPE glade-project SYSTEM "http://glade.gnome.org/glade-project-2.0.dtd">
 
 <glade-project>
-  <name>file-sync</name>
-  <program_name>file-sync</program_name>
+  <name>synce-sync</name>
+  <program_name>synce-sync</program_name>
   <source_directory></source_directory>
   <pixmaps_directory></pixmaps_directory>
   <gettext_support>FALSE</gettext_support>
