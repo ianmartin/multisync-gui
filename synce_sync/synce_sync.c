@@ -310,18 +310,18 @@ void msync_synce_sync_options(MSyncEnv *env, OSyncMember *target)
 #endif
 }
 
-gboolean
-synce_optwin_delete_event               (GtkWidget       *widget,
-                                        GdkEvent        *event,
+
+void
+synce_on_wnd_options_destroy           (GtkObject       *object,
                                         gpointer         user_data)
 {
 	g_free(options);
-	return FALSE;
+	return;
 }
 
 
 void
-synce_cancelbutton_clicked              (GtkButton       *button,
+synce_on_btn_cancel_clicked            (GtkButton       *button,
                                         gpointer         user_data)
 {
 	gtk_widget_destroy(synce_wnd_options);
@@ -330,7 +330,7 @@ synce_cancelbutton_clicked              (GtkButton       *button,
 
 
 void
-synce_okbutton_clicked                  (GtkButton       *button,
+synce_on_btn_ok_clicked                (GtkButton       *button,
                                         gpointer         user_data)
 {
 	GtkWidget *item;
@@ -353,35 +353,13 @@ synce_okbutton_clicked                  (GtkButton       *button,
 	gtk_widget_destroy(synce_wnd_options);
 	synce_wnd_options = NULL;
 }
-/*
- * End code stolen from evolution2
- */
+
+void msync_register_synce_sync(MSyncEnv *env)
+{
+	msync_register_plugin(env, "synce-plugin", msync_synce_sync_options);
+}
 
 #if 0
-#include "multisync.h"
-#include "interface.h"
-#include "callbacks.h"
-
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-
-OSyncMember *member;
-
-void
-synce_on_wnd_options_destroy                 (GtkObject       *object,
-                                        gpointer         user_data)
-{
-	printf("release controls now\n");
-}
-
-void
-synce_on_btn_cancel_clicked                  (GtkButton       *button,
-                                        gpointer         user_data)
-{
-	gtk_widget_destroy(synce_wnd_options);
-	synce_wnd_options = NULL;
-}
-
 static void msync_fs_make_config(synce_options *options, char **data, int *size)
 {
 	xmlDocPtr doc;
@@ -413,8 +391,3 @@ synce_on_btn_ok_clicked                      (GtkButton       *button,
 	synce_wnd_options = NULL;
 }
 #endif
-
-void msync_register_synce_sync(MSyncEnv *env)
-{
-	msync_register_plugin(env, "synce-plugin", msync_synce_sync_options);
-}
