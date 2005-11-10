@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = file-sync $(EVO_SYNC_DIR) $(EVO2_SYNC_DIR) $(SYNCE_SYNC_DIR)
+SUBDIRS = file-sync $(EVO2_SYNC_DIR) $(SYNCE_SYNC_DIR)
 
 if EVO2_SYNC_DIR
 EVO2LIB = evolution2_sync/libevo2_sync.la
@@ -45,7 +45,10 @@ multisync0_90_LDADD = @PACKAGE_LIBS@ \
 	$(SYNCELIB)
 
 EXTRA_DIST = \
-	autogen.sh \
+	multisync.h \
+	gui.h \
+	interface.h \
+	support.h \
 	multisync.glade2 \
 	multisync.glade2p
 

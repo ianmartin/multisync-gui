@@ -2,7 +2,7 @@
 
 AM_CFLAGS = @XMLCFLAGS@ -Werror -Wall
 
-INCLUDES = @PACKAGE_CFLAGS@ -I$(top_srcdir)
+INCLUDES = @PACKAGE_CFLAGS@ -I$(top_srcdir) -I$(srcdir)
 
 noinst_LTLIBRARIES = libfile_sync.la
 
