@@ -6,6 +6,9 @@
 /* ENABLE_EVO2 */
 #undef ENABLE_EVO2
 
+/* ENABLE_SYNCE */
+#undef ENABLE_SYNCE
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 

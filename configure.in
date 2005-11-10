@@ -26,16 +26,24 @@ OPENSYNC_HEADERDIR=$(pkg-config --variable=headerdir opensync-1.0)
 
 AC_CHECK_HEADER(${OPENSYNC_HEADERDIR}/evo2_sync.h, EVO2_SYNC_DIR=evolution2_sync, EVO2_SYNC_DIR=)
 AC_CHECK_HEADER(${OPENSYNC_HEADERDIR}/evo_sync.h, EVO_SYNC_DIR=evolution_sync, EVO_SYNC_DIR=)
+dnl AC_CHECK_HEADER(${OPENSYNC_HEADERDIR}/synce_sync.h, SYNCE_SYNC_DIR=synce_sync, SYNCE_SYNC_DIR=)
+SYNCE_SYNC_DIR=synce_sync
+
 AC_SUBST(EVO_SYNC_DIR)
 AC_SUBST(EVO2_SYNC_DIR)
+AC_SUBST(SYNCE_SYNC_DIR)
 if test "x${EVO2_SYNC_DIR}" != "x"; then
 	AC_DEFINE_UNQUOTED(ENABLE_EVO2, 1,[ENABLE_EVO2])
+fi
+if test "x${SYNCE_SYNC_DIR}" != "x"; then
+	AC_DEFINE_UNQUOTED(ENABLE_SYNCE, 1,[ENABLE_SYNCE])
 fi
 if test "x${EVO_SYNC_DIR}" != "x"; then
 	AC_DEFINE_UNQUOTED(ENABLE_EVO, 1,[ENABLE_EVO])
 fi
 AM_CONDITIONAL(EVO_SYNC_DIR, test "x${EVO_SYNC_DIR}" != "x")
 AM_CONDITIONAL(EVO2_SYNC_DIR, test "x${EVO2_SYNC_DIR}" != "x")
+AM_CONDITIONAL(SYNCE_SYNC_DIR, test "x${SYNCE_SYNC_DIR}" != "x")
 
 AC_OUTPUT([
 Makefile
@@ -47,13 +55,21 @@ synce_sync/Makefile
 
 echo "==========================================="
 echo "Building the gui for the following plugins:"
-echo "File-sync Plugin"
-echo "Kdepim Plugin"
+echo "File-sync Plugin: yes"
+echo "Kdepim Plugin: yes"
 if test "x${EVO2_SYNC_DIR}" != "x"; then
-	echo "Evolution 2.0 Plugin"
+	echo "Evolution 2.0 Plugin: yes"
+else
+	echo "Evolution 2.0 Plugin: no"
 fi
 if test "x${EVO_SYNC_DIR}" != "x"; then
-	echo "Evolution 1.4 Plugin"
+	echo "Evolution 1.4 Plugin: yes"
+else
+	echo "Evolution 1.4 Plugin: no"
 fi
-echo "SynCE Plugin"
+if test "x${SYNCE_SYNC_DIR}" != "x"; then
+	echo "SynCE Plugin: yes"
+else
+	echo "SynCE Plugin: no"
+fi
 echo "==========================================="
