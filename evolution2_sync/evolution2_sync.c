@@ -143,7 +143,7 @@ void msync_evo2_make_config(evo2_options *options, char **data, int *size)
 	xmlNewChild(doc->children, NULL, (xmlChar*)"tasks_path", (xmlChar*)options->tasks_path);
 	
 	xmlDocDumpMemory(doc, (xmlChar **)data, size);
-	*size++;
+	(*size)++;
 }
 
 

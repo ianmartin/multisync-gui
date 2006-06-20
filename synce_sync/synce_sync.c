@@ -56,7 +56,7 @@ void msync_synce_make_config(synce_options *options, char **data, int *size)
 	xmlNewChild(doc->children, NULL, (xmlChar*)"files_path", (xmlChar*)options->file_path);
 
 	xmlDocDumpMemory(doc, (xmlChar **)data, size);
-	*size++;
+	(*size)++;
 }
 
 

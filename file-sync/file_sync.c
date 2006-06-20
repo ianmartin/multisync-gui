@@ -126,7 +126,7 @@ static void msync_fs_make_config(fs_options *options, char **data, int *size)
 	xmlNewChild(doc->children, NULL, (xmlChar*)"recursive", (xmlChar*)(options->recursive ? "TRUE" : "FALSE"));
 	
 	xmlDocDumpMemory(doc, (xmlChar **)data, size);
-	*size++;
+	(*size)++;
 }
 
 void
