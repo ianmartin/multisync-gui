@@ -146,7 +146,7 @@ void
 on_newpairmenu_activate                (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
-
+  msync_new_pair();
 }
 
 

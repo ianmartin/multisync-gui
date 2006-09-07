@@ -11,6 +11,7 @@ void msync_open_localplugin_window(void);
 void msync_open_remoteplugin_window(void);
 void msync_cancel_syncpairwindow(void);
 void msync_ok_syncpairwindow(void);
+void msync_new_pair();
 void msync_edit_pair(void);
 void msync_main_quit(void);
 void msync_delete_pair(void);
