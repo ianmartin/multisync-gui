@@ -4,7 +4,7 @@
 
 void msync_env_finalize(MSyncEnv* env)
 {
-	g_list_foreach(env->groups, msync_group_free, NULL);
+	g_list_foreach(env->groups, (GFunc)msync_group_free, NULL);
 }
 
 void msync_env_load_plugins(MSyncEnv* env)
@@ -26,19 +26,61 @@ void msync_env_load_groups(MSyncEnv *env)
 	}
 }
 
+
+void msync_env_syncronize_group2(MSyncGroup *group)
+{
+	OSyncError *error = NULL;
+	
+	msync_group_set_sensitive(group, TRUE, FALSE);
+	
+	group->engine = osengine_new(group->group, &error);
+	if (!group->engine) {
+		gdk_threads_enter();
+		msync_error_message(GTK_WINDOW(group->msync->mainwindow), "Error while creating syncengine: %s\n", osync_error_print(&error));
+		gdk_flush();	
+		gdk_threads_leave ();
+		osync_error_free(&error);
+		osengine_free(group->engine);
+		group->engine = NULL;
+		msync_group_set_sensitive(group, TRUE, TRUE);
+		return;
+	}
+	
+	osengine_set_memberstatus_callback(group->engine, msync_group_syncronize_update_member_status, group);
+	osengine_set_enginestatus_callback(group->engine, msync_group_syncronize_update_engine_status, group);
+	osengine_set_conflict_callback(group->engine, msync_group_syncronize_show_conflict_dialog, group);
+	osengine_set_changestatus_callback(group->engine, entry_status, NULL);
+	osengine_set_mappingstatus_callback(group->engine, mapping_status, NULL);
+	
+	
+	
+	if (!osengine_init(group->engine, &error)) {
+		gdk_threads_enter();
+		msync_error_message(GTK_WINDOW(group->msync->mainwindow), "Error while initializing syncengine: %s\n", osync_error_print(&error));
+		gdk_flush();	
+		gdk_threads_leave ();
+		osync_error_free(&error);
+		msync_group_set_sensitive(group, TRUE, TRUE);
+		return;
+	}
+
+
+	osengine_sync_and_block(group->engine, &error);
+	if(error)
+		printf("Error synchronizing: %s\n", osync_error_print(&error));
+
+	osengine_finalize(group->engine);
+	osengine_free(group->engine);	
+	msync_group_set_sensitive(group, TRUE, TRUE);
+}
+
 void msync_env_syncronize_group(MSyncEnv *env, MSyncGroup *group)
 {
 printf("%s\n", __func__);
-	OSyncError *error = NULL;
 
+GError* error;
+g_thread_create((GThreadFunc)msync_env_syncronize_group2, group, FALSE, &error);
 
-
-osengine_synchronize(group->engine, &error);
-if(error)
-	printf("Error synchronizing: %s\n", osync_error_print(&error));
-
-	//osengine_finalize(engine);
-	//osengine_free(engine);
 printf("%sENDE\n", __func__);	
 }
 

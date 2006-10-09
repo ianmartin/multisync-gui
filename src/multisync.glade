@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.0.2 on Sun Oct  8 13:51:50 2006 by daniel@f-bert
+<!--Generated with glade3 3.0.2 on Mon Oct  9 14:54:02 2006 by daniel@f-bert
 	Version: 3.0.1
 	Date: Sat Sep 30 15:03:07 2006
 	User: daniel
@@ -482,6 +482,13 @@
                                 <property name="n_rows">1</property>
                                 <property name="n_columns">2</property>
                                 <child>
+                                  <widget class="GtkLabel" id="label8">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">Group name:</property>
+                                  </widget>
+                                </child>
+                                <child>
                                   <widget class="GtkEntry" id="editgroupsettingsgroupnameentry">
                                     <property name="visible">True</property>
                                   </widget>
@@ -489,13 +496,6 @@
                                     <property name="left_attach">1</property>
                                     <property name="right_attach">2</property>
                                   </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkLabel" id="label8">
-                                    <property name="visible">True</property>
-                                    <property name="xalign">0</property>
-                                    <property name="label" translatable="yes">Group name:</property>
-                                  </widget>
                                 </child>
                               </widget>
                               <packing>
@@ -604,8 +604,6 @@
   </widget>
   <widget class="GtkDialog" id="syncronizegroupconflictdialog">
     <property name="border_width">5</property>
-    <property name="modal">True</property>
-    <property name="deletable">False</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox5">
         <property name="visible">True</property>

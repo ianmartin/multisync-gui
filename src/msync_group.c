@@ -70,7 +70,7 @@ void msync_group_syncronize_update_engine_status(OSyncEngine *engine, OSyncEngin
 	switch (status->type) {
 		case ENG_PREV_UNCLEAN:
 			printf("The previous synchronization was unclean. Slow-syncing\n");
-			msync_group_update_engine_status(group, FALSE,"The previous synchronization was unclean. Slow-syncing");
+			msync_group_update_engine_status(group, TRUE,"The previous synchronization was unclean. Slow-syncing");
 			break;
 		case ENG_ENDPHASE_CON:
 			printf("All clients connected or error\n");
@@ -149,43 +149,53 @@ void entry_status(OSyncEngine *engine, OSyncChangeUpdate *status, void *user_dat
 	}
 }
 
-msync_group_syncronize_mapping_duplicate(MSyncGroup* group)
+typedef struct MSyncConflictMsg {
+	MSyncGroup* group;
+	OSyncMapping* mapping;
+	GtkWidget* dialog;
+} MSyncConflictMsg;
+
+msync_group_syncronize_mapping_duplicate(MSyncConflictMsg* msg)
 {
 	printf("Mapping duplicated\n");
-	osengine_mapping_duplicate(group->engine, group->curmapping);
-	gtk_widget_hide(group->msync->syncronizegroupconflictdialog);
+	osengine_mapping_duplicate(msg->group->engine, msg->mapping);
+	gtk_widget_hide(msg->dialog);
+	g_free(msg);
 }
 
-msync_group_syncronize_mapping_ignore(MSyncGroup* group)
+msync_group_syncronize_mapping_ignore(MSyncConflictMsg* msg)
 {
 	printf("Conflict ignored\n");
 	OSyncError* error = NULL;
-	if (!osengine_mapping_ignore_conflict(group->engine, group->curmapping, &error)) {
-		msync_error_message(GTK_WINDOW(group->msync->syncronizegroupconflictdialog), "Conflict not ignored: %s\n", osync_error_print(&error));
+	if (!osengine_mapping_ignore_conflict(msg->group->engine, msg->mapping, &error)) {
+		msync_error_message(GTK_WINDOW(msg->dialog), "Conflict not ignored: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 		return;
 	}
-	gtk_widget_hide(group->msync->syncronizegroupconflictdialog);
+	gtk_widget_hide(msg->dialog);
+	g_free(msg);
 }
 
-msync_group_syncronize_mapping_newer(MSyncGroup* group)
+msync_group_syncronize_mapping_newer(MSyncConflictMsg* msg)
 {
 	printf("Newest entry used\n");
 	OSyncError* error = NULL;
-	if (!osengine_mapping_solve_latest(group->engine, group->curmapping, &error)) {
-		msync_error_message(GTK_WINDOW(group->msync->syncronizegroupconflictdialog), "Conflict not resolved: %s\n", osync_error_print(&error));
+	if (!osengine_mapping_solve_latest(msg->group->engine, msg->mapping, &error)) {
+		msync_error_message(GTK_WINDOW(msg->dialog), "Conflict not resolved: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 		return;
 	}
-	gtk_widget_hide(group->msync->syncronizegroupconflictdialog);
+	gtk_widget_hide(msg->dialog);
+	g_free(msg);
 }
 
-msync_group_syncronize_mapping_select(GtkButton* button, MSyncGroup* group)
+msync_group_syncronize_mapping_select(GtkButton* button, MSyncConflictMsg* msg)
 {
 	printf("Overwriting conflict\n");
 	OSyncChange* change =g_object_get_data(G_OBJECT(button), "msync_change");
-	osengine_mapping_solve(group->engine, group->curmapping, change);
-	gtk_widget_hide(group->msync->syncronizegroupconflictdialog);
+	osengine_mapping_solve(msg->group->engine, msg->mapping, change);
+	gtk_widget_hide(msg->dialog);
+	g_free(msg);
 }
 
 void msync_group_syncronize_show_conflict_dialog(OSyncEngine *engine, OSyncMapping *mapping, void *user_data)
@@ -194,43 +204,152 @@ void msync_group_syncronize_show_conflict_dialog(OSyncEngine *engine, OSyncMappi
 	OSyncChange *change = NULL;
 	
 	g_assert(user_data);
-	MSyncGroup* group = (MSyncGroup *)user_data;
-	group->curmapping = mapping;
 	
+	MSyncConflictMsg* msg = g_malloc0(sizeof(MSyncConflictMsg));
+	msg->group = (MSyncGroup *)user_data;
+	msg->mapping = mapping;
+		
 	gdk_threads_enter();
 	
-	gtk_widget_show(group->msync->syncronizegroupconflictdialog);
+	
+///****/
+//	GladeXML* window = glade_xml_new("multisync.glade", NULL, NULL);
+//	GtkWidget* syncronizegroupconflictdialog = glade_xml_get_widget(window, "syncronizegroupconflictdialog");
+//	GtkWidget* syncronizegroupconflictcontainer = glade_xml_get_widget(window, "syncronizegroupconflictcontainer");
+//	GtkWidget* syncronizegroupconflictbuttons = glade_xml_get_widget(window, "syncronizegroupconflictbuttons");
+//	gtk_widget_show(syncronizegroupconflictdialog);
+///****/
+//	GList* childs = gtk_container_get_children(GTK_CONTAINER(syncronizegroupconflictcontainer));
+//	if(!childs)
+//		printf("no childs1\n");
+//	g_list_foreach(childs, (GFunc)gtk_widget_destroy, NULL);
+//	g_list_free(childs);
+//
+//	childs = gtk_container_get_children(GTK_CONTAINER(syncronizegroupconflictbuttons));
+//	if(!childs)
+//		printf("no childs\n");
+//	g_list_foreach(childs, (GFunc)gtk_widget_destroy, NULL);
+//	g_list_free(childs);
+//
+//	if (osengine_mapping_ignore_supported(engine, mapping)) {
+//		GtkWidget* button3 = gtk_button_new_with_label ("Ignore");
+//		gtk_widget_show (button3);
+//		gtk_box_pack_start (GTK_BOX (syncronizegroupconflictbuttons), button3, TRUE, TRUE, 0);
+//		GTK_WIDGET_UNSET_FLAGS (button3, GTK_CAN_FOCUS);
+//		g_signal_connect_swapped(G_OBJECT(button3), "clicked", G_CALLBACK(msync_group_syncronize_mapping_ignore), group);
+//	}
+//	GtkWidget* button4 = gtk_button_new_with_label ("Duplicate");
+//	gtk_widget_show (button4);
+//	gtk_dialog_add_action_widget (GTK_DIALOG (syncronizegroupconflictdialog), button4, 0);
+//	GTK_WIDGET_UNSET_FLAGS (button4, GTK_CAN_FOCUS);
+//	g_signal_connect_swapped(G_OBJECT(button4), "clicked", G_CALLBACK(msync_group_syncronize_mapping_duplicate), group);
+//
+//	GtkWidget* button6 = gtk_button_new_with_label ("Newer");
+//	gtk_widget_show (button6);
+//	gtk_box_pack_start (GTK_BOX(syncronizegroupconflictbuttons), button6, TRUE, TRUE, 0);
+//	GTK_WIDGET_UNSET_FLAGS (button6, GTK_CAN_FOCUS);
+//	g_signal_connect_swapped(G_OBJECT(button6), "clicked", G_CALLBACK(msync_group_syncronize_mapping_newer), group);
+//
+//	int i = 0;
+//	for (i = 0; i < osengine_mapping_num_changes(mapping); i++) {
+//		OSyncChange *change = osengine_mapping_nth_change(mapping, i);
+//		if (osync_change_get_changetype(change) != CHANGE_UNKNOWN)
+//		{
+//  GtkWidget* vbox7 = gtk_vbox_new (FALSE, 10);
+//  gtk_widget_show (vbox7);
+//  gtk_box_pack_start (GTK_BOX (syncronizegroupconflictcontainer), vbox7, TRUE, TRUE, 0);
+//
+//  GtkWidget* hbox8 = gtk_hbox_new (FALSE, 10);
+//  gtk_widget_show (hbox8);
+//  gtk_box_pack_start (GTK_BOX (vbox7), hbox8, FALSE, FALSE, 0);
+//
+//gchar* text = g_strdup_printf("Member: %s\nUID: %s", osync_member_get_pluginname(osync_change_get_member(change)), osync_change_get_uid(change));
+//  GtkWidget* label11 = gtk_label_new (text);
+//g_free(text);
+//  gtk_widget_show (label11);
+//  gtk_box_pack_start (GTK_BOX (hbox8), label11, FALSE, FALSE, 0);
+//
+//  GtkWidget* button9 = gtk_button_new_from_stock ("gtk-apply");
+//  gtk_widget_show (button9);
+//  gtk_box_pack_start (GTK_BOX (hbox8), button9, FALSE, FALSE, 0);
+//  GTK_WIDGET_UNSET_FLAGS (button9, GTK_CAN_FOCUS);
+//g_signal_connect(G_OBJECT(button9), "clicked", G_CALLBACK(msync_group_syncronize_mapping_select), group);
+//g_object_set_data(G_OBJECT(button9), "msync_change", change);
+//
+//  GtkWidget* scrolledwindow4 = gtk_scrolled_window_new (NULL, NULL);
+//  gtk_widget_show (scrolledwindow4);
+//  gtk_box_pack_start (GTK_BOX (vbox7), scrolledwindow4, TRUE, TRUE, 0);
+//  gtk_widget_set_size_request (scrolledwindow4, 300, 300);
+//  GTK_WIDGET_UNSET_FLAGS (scrolledwindow4, GTK_CAN_FOCUS);
+//  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow4), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+//
+//  GtkWidget* viewport2 = gtk_viewport_new (NULL, NULL);
+//  gtk_widget_show (viewport2);
+//  gtk_container_add (GTK_CONTAINER (scrolledwindow4), viewport2);
+//
+//  GtkWidget* textview1 = gtk_text_view_new ();
+//  gtk_widget_show (textview1);
+//  gtk_container_add (GTK_CONTAINER (viewport2), textview1);
+//  GTK_WIDGET_UNSET_FLAGS (textview1, GTK_CAN_FOCUS);
+//  //gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (textview1), GTK_WRAP_WORD);
+//char* tmp = osync_change_get_printable(change);
+////gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview1)), "muh", -1);
+//gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview1)), (gchar *)tmp, -1);
+//free(tmp);
+/****************************************/
+  GtkWidget *syncronizegroupconflictdialog;
+  GtkWidget *dialog_vbox5;
+  GtkWidget *vbox7;
+  GtkWidget *hbox9;
+  GtkWidget *image5;
+  GtkWidget *label12;
+  GtkWidget *syncronizegroupconflictcontainer;
+  //GtkWidget *vbox7;
+  GtkWidget *hbox8;
+  GtkWidget *label11;
+  GtkWidget *button9;
+  GtkWidget *scrolledwindow4;
+  GtkWidget *viewport2;
+  GtkWidget *textview1;
+  GtkWidget *vbox8;
+  GtkWidget *hbox10;
+  GtkWidget *label15;
+  GtkWidget *button10;
+  GtkWidget *scrolledwindow5;
+  GtkWidget *viewport3;
+  GtkWidget *textview2;
+  GtkWidget *syncronizegroupconflictbuttons;
+  GtkWidget *button8;
+  GtkWidget *button6;
+  GtkWidget *button3;
+  syncronizegroupconflictdialog = gtk_dialog_new ();
+  gtk_container_set_border_width (GTK_CONTAINER (syncronizegroupconflictdialog), 5);
+  gtk_window_set_modal (GTK_WINDOW (syncronizegroupconflictdialog), FALSE);
+  gtk_window_set_type_hint (GTK_WINDOW (syncronizegroupconflictdialog), GDK_WINDOW_TYPE_HINT_DIALOG);
 
-	GList* childs = gtk_container_get_children(GTK_CONTAINER(group->msync->syncronizegroupconflictcontainer));
-	if(!childs)
-		printf("no childs1\n");
-	g_list_foreach(childs, (GFunc)gtk_widget_destroy, NULL);
-	g_list_free(childs);
+  dialog_vbox5 = GTK_DIALOG (syncronizegroupconflictdialog)->vbox;
+  gtk_widget_show (dialog_vbox5);
 
-	childs = gtk_container_get_children(GTK_CONTAINER(group->msync->syncronizegroupconflictbuttons));
-	if(!childs)
-		printf("no childs\n");
-	g_list_foreach(childs, (GFunc)gtk_widget_destroy, NULL);
-	g_list_free(childs);
+  vbox7 = gtk_vbox_new (FALSE, 10);
+  gtk_widget_show (vbox7);
+  gtk_box_pack_start (GTK_BOX (dialog_vbox5), vbox7, TRUE, TRUE, 0);
 
-	if (osengine_mapping_ignore_supported(engine, mapping)) {
-		GtkWidget* button3 = gtk_button_new_with_label ("Ignore");
-		gtk_widget_show (button3);
-		gtk_box_pack_start (GTK_BOX (group->msync->syncronizegroupconflictbuttons), button3, TRUE, TRUE, 0);
-		GTK_WIDGET_UNSET_FLAGS (button3, GTK_CAN_FOCUS);
-		g_signal_connect_swapped(G_OBJECT(button3), "clicked", G_CALLBACK(msync_group_syncronize_mapping_ignore), group);
-	}
-	GtkWidget* button4 = gtk_button_new_with_label ("Duplicate");
-	gtk_widget_show (button4);
-	gtk_dialog_add_action_widget (GTK_DIALOG (group->msync->syncronizegroupconflictdialog), button4, 0);
-	GTK_WIDGET_UNSET_FLAGS (button4, GTK_CAN_FOCUS);
-	g_signal_connect_swapped(G_OBJECT(button4), "clicked", G_CALLBACK(msync_group_syncronize_mapping_duplicate), group);
+  hbox9 = gtk_hbox_new (FALSE, 0);
+  gtk_widget_show (hbox9);
+  gtk_box_pack_start (GTK_BOX (vbox7), hbox9, FALSE, FALSE, 0);
 
-	GtkWidget* button6 = gtk_button_new_with_label ("Newer");
-	gtk_widget_show (button6);
-	gtk_box_pack_start (GTK_BOX(group->msync->syncronizegroupconflictbuttons), button6, TRUE, TRUE, 0);
-	GTK_WIDGET_UNSET_FLAGS (button6, GTK_CAN_FOCUS);
-	g_signal_connect_swapped(G_OBJECT(button6), "clicked", G_CALLBACK(msync_group_syncronize_mapping_newer), group);
+  image5 = gtk_image_new_from_stock ("gtk-dialog-question", GTK_ICON_SIZE_DND);
+  gtk_widget_show (image5);
+  gtk_box_pack_start (GTK_BOX (hbox9), image5, FALSE, FALSE, 0);
+
+  label12 = gtk_label_new ("Which entry do you want to use?");
+  gtk_widget_show (label12);
+  gtk_box_pack_start (GTK_BOX (hbox9), label12, FALSE, FALSE, 0);
+  gtk_label_set_use_markup (GTK_LABEL (label12), TRUE);
+
+  syncronizegroupconflictcontainer = gtk_hbox_new (FALSE, 10);
+  gtk_widget_show (syncronizegroupconflictcontainer);
+  gtk_box_pack_start (GTK_BOX (vbox7), syncronizegroupconflictcontainer, TRUE, TRUE, 0);
 
 	int i = 0;
 	for (i = 0; i < osengine_mapping_num_changes(mapping); i++) {
@@ -239,7 +358,7 @@ void msync_group_syncronize_show_conflict_dialog(OSyncEngine *engine, OSyncMappi
 		{
   GtkWidget* vbox7 = gtk_vbox_new (FALSE, 10);
   gtk_widget_show (vbox7);
-  gtk_box_pack_start (GTK_BOX (group->msync->syncronizegroupconflictcontainer), vbox7, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (syncronizegroupconflictcontainer), vbox7, TRUE, TRUE, 0);
 
   GtkWidget* hbox8 = gtk_hbox_new (FALSE, 10);
   gtk_widget_show (hbox8);
@@ -255,7 +374,7 @@ g_free(text);
   gtk_widget_show (button9);
   gtk_box_pack_start (GTK_BOX (hbox8), button9, FALSE, FALSE, 0);
   GTK_WIDGET_UNSET_FLAGS (button9, GTK_CAN_FOCUS);
-g_signal_connect(G_OBJECT(button9), "clicked", G_CALLBACK(msync_group_syncronize_mapping_select), group);
+g_signal_connect(G_OBJECT(button9), "clicked", G_CALLBACK(msync_group_syncronize_mapping_select), msg);
 g_object_set_data(G_OBJECT(button9), "msync_change", change);
 
   GtkWidget* scrolledwindow4 = gtk_scrolled_window_new (NULL, NULL);
@@ -280,6 +399,35 @@ gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview1)), (gc
 free(tmp);
 		}
 	}
+
+  syncronizegroupconflictbuttons = GTK_DIALOG (syncronizegroupconflictdialog)->action_area;
+  gtk_widget_show (syncronizegroupconflictbuttons);
+  gtk_button_box_set_layout (GTK_BUTTON_BOX (syncronizegroupconflictbuttons), GTK_BUTTONBOX_END);
+
+	if (osengine_mapping_ignore_supported(engine, mapping)) {
+		GtkWidget* button3 = gtk_button_new_with_label ("Ignore");
+		gtk_widget_show (button3);
+		gtk_box_pack_start (GTK_BOX (syncronizegroupconflictbuttons), button3, TRUE, TRUE, 0);
+		GTK_WIDGET_UNSET_FLAGS (button3, GTK_CAN_FOCUS);
+		g_signal_connect_swapped(G_OBJECT(button3), "clicked", G_CALLBACK(msync_group_syncronize_mapping_ignore), msg);
+	}
+	GtkWidget* button4 = gtk_button_new_with_label ("Duplicate");
+	gtk_widget_show (button4);
+	gtk_dialog_add_action_widget (GTK_DIALOG (syncronizegroupconflictdialog), button4, 0);
+	GTK_WIDGET_UNSET_FLAGS (button4, GTK_CAN_FOCUS);
+	g_signal_connect_swapped(G_OBJECT(button4), "clicked", G_CALLBACK(msync_group_syncronize_mapping_duplicate), msg);
+
+	button6 = gtk_button_new_with_label ("Newer");
+	gtk_widget_show (button6);
+	gtk_box_pack_start (GTK_BOX(syncronizegroupconflictbuttons), button6, TRUE, TRUE, 0);
+	GTK_WIDGET_UNSET_FLAGS (button6, GTK_CAN_FOCUS);
+	g_signal_connect_swapped(G_OBJECT(button6), "clicked", G_CALLBACK(msync_group_syncronize_mapping_newer), msg);
+
+
+	
+	msg->dialog = syncronizegroupconflictdialog;
+	gtk_window_set_deletable(GTK_WINDOW(syncronizegroupconflictdialog), FALSE);
+	gtk_widget_show(syncronizegroupconflictdialog);
 	
 	gdk_flush();	
 	gdk_threads_leave ();
@@ -297,32 +445,35 @@ void msync_group_new(MSyncEnv *env, OSyncGroup *osyncgroup)
 	OSyncError *error = NULL;
 	
 	//printf("Synchronizing group %s\n", osync_group_get_name(group->group));
-	group->engine = osengine_new(group->group, &error);
-	if (!group->engine) {
-		msync_error_message(GTK_WINDOW(env->mainwindow), "Error while creating syncengine: %s\n", osync_error_print(&error));
-		osync_error_free(&error);
-		return;
-	}
-	
-	osengine_set_memberstatus_callback(group->engine, msync_group_syncronize_update_member_status, group);
-	osengine_set_enginestatus_callback(group->engine, msync_group_syncronize_update_engine_status, group);
-	osengine_set_conflict_callback(group->engine, msync_group_syncronize_show_conflict_dialog, group);
-	osengine_set_changestatus_callback(group->engine, entry_status, NULL);
-	osengine_set_mappingstatus_callback(group->engine, mapping_status, NULL);
+//	group->engine = osengine_new(group->group, &error);
+//	if (!group->engine) {
+//		msync_error_message(GTK_WINDOW(env->mainwindow), "Error while creating syncengine: %s\n", osync_error_print(&error));
+//		osync_error_free(&error);
+//		return;
+//	}
+//	
+//	osengine_set_memberstatus_callback(group->engine, msync_group_syncronize_update_member_status, group);
+//	osengine_set_enginestatus_callback(group->engine, msync_group_syncronize_update_engine_status, group);
+//	osengine_set_conflict_callback(group->engine, msync_group_syncronize_show_conflict_dialog, group);
+//	osengine_set_changestatus_callback(group->engine, entry_status, NULL);
+//	osengine_set_mappingstatus_callback(group->engine, mapping_status, NULL);
 
-	if (!osengine_init(group->engine, &error)) {
-		msync_error_message(GTK_WINDOW(env->mainwindow), "Error while initializing syncengine: %s\n", osync_error_print(&error));
-		osync_error_free(&error);
-		return;
-	}
+//	if (!osengine_init(group->engine, &error)) {
+//		msync_error_message(GTK_WINDOW(env->mainwindow), "Error while initializing syncengine: %s\n", osync_error_print(&error));
+//		osync_error_free(&error);
+//		return;
+//	}
 	
 }
 
 void msync_group_free(MSyncGroup *group)
 {
-	osengine_finalize(group->engine);
-	osengine_free(group->engine);
-	
+//	if(group->engine) {
+//		OSyncError* error;
+//		osengine_abort(group->engine);
+//		osengine_finalize(group->engine);
+//		osengine_free(group->engine);
+//	}
 	g_list_free(group->memberstatuslabel);
 	gtk_widget_destroy(group->widget);
 	group->msync->groups = g_list_remove(group->msync->groups, group);
@@ -361,6 +512,22 @@ void msync_group_update_member_status(MSyncGroup *group, OSyncMember *member, co
 	gdk_flush();	
 	gdk_threads_leave ();
 	//g_mutex_unlock(group->mutex);
+}
+
+void msync_group_set_sensitive(MSyncGroup *group, gboolean gtkthreadsafe, gboolean sensitive)
+{
+	if(gtkthreadsafe) {
+		gdk_threads_enter();
+	}
+	
+	gtk_widget_set_sensitive(group->buttondelete, sensitive);
+	gtk_widget_set_sensitive(group->buttonedit, sensitive);
+	gtk_widget_set_sensitive(group->buttonsyncronize, sensitive);
+
+	if(gtkthreadsafe) {
+		gdk_flush();	
+		gdk_threads_leave ();
+	}
 }
 
 GtkWidget *msync_group_update_widget(MSyncGroup *group)
@@ -496,6 +663,10 @@ GtkWidget *msync_group_create_widget(MSyncGroup *group)
 g_signal_connect(G_OBJECT(button3), "clicked", G_CALLBACK(on_buttondelete_clicked), group);
 g_signal_connect(G_OBJECT(button4), "clicked", G_CALLBACK(on_buttonedit_clicked), group);
 g_signal_connect(G_OBJECT(button6), "clicked", G_CALLBACK(on_buttonsyncronize_clicked), group);
+  
+  group->buttondelete = button3;
+  group->buttonedit = button4;
+  group->buttonsyncronize = button6;
   
   return GTK_WIDGET(vbox4);
 }
