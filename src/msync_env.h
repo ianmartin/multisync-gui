@@ -20,6 +20,7 @@ struct MSyncEnv {
 	GtkWidget* syncronizegroupconflictdialog;
 	GtkWidget* syncronizegroupconflictcontainer;
 	GtkWidget* syncronizegroupconflictbuttons;
+	GtkWidget* syncronizegroupcheckbuttonremember;
 	GtkWidget* aboutdialog;
 	GList *groups;
 	GList *plugins;

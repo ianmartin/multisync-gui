@@ -45,6 +45,7 @@ int main (int argc, char *argv[])
 	env->syncronizegroupconflictdialog = glade_xml_get_widget(env->window, "syncronizegroupconflictdialog");
 	env->syncronizegroupconflictcontainer = glade_xml_get_widget(env->window, "syncronizegroupconflictcontainer");
 	env->syncronizegroupconflictbuttons = glade_xml_get_widget(env->window, "syncronizegroupconflictbuttons");
+	env->syncronizegroupcheckbuttonremember = glade_xml_get_widget(env->window, "syncronizegroupcheckbuttonremember");
 	env->aboutdialog = glade_xml_get_widget(env->window, "aboutdialog"); 
 
 	g_signal_connect_swapped(G_OBJECT(env->mainwindow), "delete_event", G_CALLBACK(on_exit), env);

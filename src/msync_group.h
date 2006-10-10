@@ -1,6 +1,14 @@
 #ifndef MSYNC_GROUP_H_
 #define MSYNC_GROUP_H_
 
+typedef enum MSyncResolution {
+	MSYNC_RESOLUTION_UNKNOWN,
+	MSYNC_RESOLUTION_DUPLICATE,
+	MSYNC_RESOLUTION_IGNORE,
+	MSYNC_RESOLUTION_NEWER,
+	MSYNC_RESOLUTION_SELECT
+} MSyncResolution;
+
 struct MSyncGroup {
 	MSyncEnv* msync;
 	OSyncGroup *group;
@@ -13,6 +21,12 @@ struct MSyncGroup {
 	GtkWidget* enginelabel;
 	GList* memberstatuslabel;
 	OSyncEngine* engine;
+	GCond* cond;
+	GMutex* mutex;
+	gboolean go;
+	gboolean remember;
+	MSyncResolution resolution;
+	int winningside;
 };
 
 void msync_group_syncronize_show_conflict_dialog(OSyncEngine *engine, OSyncMapping *mapping, void *user_data);

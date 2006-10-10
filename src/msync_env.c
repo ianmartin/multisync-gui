@@ -32,6 +32,8 @@ void msync_env_syncronize_group2(MSyncGroup *group)
 	OSyncError *error = NULL;
 	
 	msync_group_set_sensitive(group, TRUE, FALSE);
+	group->resolution = MSYNC_RESOLUTION_UNKNOWN;
+	group->winningside = 0;
 	
 	group->engine = osengine_new(group->group, &error);
 	if (!group->engine) {
@@ -64,8 +66,26 @@ void msync_env_syncronize_group2(MSyncGroup *group)
 		return;
 	}
 
-
-	osengine_sync_and_block(group->engine, &error);
+	gboolean wait = FALSE;
+	int i;
+	int num = osync_group_num_members(group->group);
+	for(i=0; i<num; i++)
+	{
+		OSyncMember *member = osync_group_nth_member(group->group, i);
+		const char* name = osync_member_get_pluginname(member);
+		if (strcmp(name, "syncml-http-server") == 0 ||
+			strcmp(name, "palm-sync") == 0)
+			{
+				wait = TRUE;
+				break;
+			}
+	}
+	
+	if(!wait)
+		osengine_sync_and_block(group->engine, &error);
+	else
+		osengine_wait_sync_end(group->engine, &error);
+		
 	if(error)
 		printf("Error synchronizing: %s\n", osync_error_print(&error));
 

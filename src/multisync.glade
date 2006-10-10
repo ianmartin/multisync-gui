@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.0.2 on Mon Oct  9 14:54:02 2006 by daniel@f-bert
+<!--Generated with glade3 3.0.2 on Tue Oct 10 14:27:27 2006 by daniel@f-bert
 	Version: 3.0.1
 	Date: Sat Sep 30 15:03:07 2006
 	User: daniel
@@ -57,6 +57,7 @@
             <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
             <child>
               <widget class="GtkViewport" id="viewport1">
+                <property name="width_request">400</property>
                 <property name="height_request">410</property>
                 <property name="visible">True</property>
                 <child>
@@ -604,6 +605,7 @@
   </widget>
   <widget class="GtkDialog" id="syncronizegroupconflictdialog">
     <property name="border_width">5</property>
+    <property name="deletable">False</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox5">
         <property name="visible">True</property>
@@ -643,6 +645,18 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkCheckButton" id="syncronizegroupcheckbuttonremember">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Remember my decision.</property>
+                <property name="draw_indicator">True</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
               </packing>
             </child>
             <child>
@@ -770,7 +784,7 @@
                 </child>
               </widget>
               <packing>
-                <property name="position">1</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </widget>
