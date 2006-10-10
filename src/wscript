@@ -1,0 +1,27 @@
+#! /usr/bin/env python
+# encoding: utf-8
+def build(bld):
+	import Common
+	import os
+	# need the program to be installed first?
+	if bld.env_of_name('default')['MULTISYNC_DATA'] :
+		ms_dat= bld.env_of_name('default')['MULTISYNC_DATA']
+		obj_gui = bld.create_obj('cc', 'program')
+		obj_gui.target='multisync-qad'
+		obj_gui.includes='.'
+		obj_gui.find_sources_in_dirs('. plugins')
+		obj_gui.defines='MULTISYNC_GLADE=\\"%s\\" ' % os.path.join(ms_dat, 'multisync.glade')
+		obj_gui.uselib = 'GLIB GTK GLADE OPENSYNC OPENSYNCENGINE'
+		
+		Common.install_files('MULTISYNC_DATA', '', 'multisync.glade')
+	else:
+		obj_gui = bld.create_obj('cc', 'program')
+		obj_gui.target='multisync-qad'
+		obj_gui.includes='.'
+		obj_gui.find_sources_in_dirs('. plugins')
+		obj_gui.uselib = 'GLIB GTK GLADE OPENSYNC OPENSYNCENGINE'
+		
+		#obj = bld.create_obj('copy', 'uh')
+		#obj.source = 'multisync.glade'
+		#obj.target = 'multisync.glade'
+
