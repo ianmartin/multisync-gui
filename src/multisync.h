@@ -8,6 +8,7 @@
 #include <osengine/engine.h>
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 typedef struct MSyncEnv MSyncEnv;
 typedef struct MSyncGroup MSyncGroup;

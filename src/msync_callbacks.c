@@ -1,6 +1,6 @@
 #include "multisync.h"
 
-void on_exit(gpointer user_data)
+void on_msync_exit(gpointer user_data)
 {
 	g_assert(user_data);
 	MSyncEnv* env = (MSyncEnv *)user_data;

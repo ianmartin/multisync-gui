@@ -35,7 +35,10 @@ void mapping_status(OSyncMappingUpdate *status, void *user_data);
 void msync_group_syncronize_update_engine_status(OSyncEngine *engine, OSyncEngineUpdate *status, void *user_data);
 void entry_status(OSyncEngine *engine, OSyncChangeUpdate *status, void *user_data);
 
+void msync_group_new(MSyncEnv *env, OSyncGroup *osyncgroup);
 void msync_group_free(MSyncGroup *group);
+void msync_group_set_sensitive(MSyncGroup *group, gboolean gtkthreadsafe, gboolean sensitive);
+void msync_group_update_widget(MSyncGroup *group);
 void msync_group_update_engine_status(MSyncGroup *group, gboolean gtkthreadsafe, const char* msg);
 void msync_group_update_member_status(MSyncGroup *group, OSyncMember *member, const char* msg);
 

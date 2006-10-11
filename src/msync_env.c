@@ -27,9 +27,12 @@ void msync_env_load_groups(MSyncEnv *env)
 }
 
 
-void msync_env_syncronize_group2(MSyncGroup *group)
+void _msync_env_syncronize_group(MSyncGroup *group)
 {
 	OSyncError *error = NULL;
+	OSyncMember *member = NULL;
+	gboolean wait = FALSE;
+	int i, num;
 	
 	msync_group_set_sensitive(group, TRUE, FALSE);
 	group->resolution = MSYNC_RESOLUTION_UNKNOWN;
@@ -37,15 +40,8 @@ void msync_env_syncronize_group2(MSyncGroup *group)
 	
 	group->engine = osengine_new(group->group, &error);
 	if (!group->engine) {
-		gdk_threads_enter();
-		msync_error_message(GTK_WINDOW(group->msync->mainwindow), "Error while creating syncengine: %s\n", osync_error_print(&error));
-		gdk_flush();	
-		gdk_threads_leave ();
-		osync_error_free(&error);
-		osengine_free(group->engine);
-		group->engine = NULL;
-		msync_group_set_sensitive(group, TRUE, TRUE);
-		return;
+		msync_error_message(GTK_WINDOW(group->msync->mainwindow), TRUE, "Error while creating syncengine: %s\n", osync_error_print(&error));
+		goto error;
 	}
 	
 	osengine_set_memberstatus_callback(group->engine, msync_group_syncronize_update_member_status, group);
@@ -54,31 +50,21 @@ void msync_env_syncronize_group2(MSyncGroup *group)
 	osengine_set_changestatus_callback(group->engine, entry_status, NULL);
 	osengine_set_mappingstatus_callback(group->engine, mapping_status, NULL);
 	
-	
-	
 	if (!osengine_init(group->engine, &error)) {
-		gdk_threads_enter();
-		msync_error_message(GTK_WINDOW(group->msync->mainwindow), "Error while initializing syncengine: %s\n", osync_error_print(&error));
-		gdk_flush();	
-		gdk_threads_leave ();
-		osync_error_free(&error);
-		msync_group_set_sensitive(group, TRUE, TRUE);
-		return;
+		msync_error_message(GTK_WINDOW(group->msync->mainwindow), TRUE, "Error while initializing syncengine: %s\n", osync_error_print(&error));
+		goto error_free_engine;
 	}
 
-	gboolean wait = FALSE;
-	int i;
-	int num = osync_group_num_members(group->group);
+	num = osync_group_num_members(group->group);
 	for(i=0; i<num; i++)
 	{
-		OSyncMember *member = osync_group_nth_member(group->group, i);
+		member = osync_group_nth_member(group->group, i);
 		const char* name = osync_member_get_pluginname(member);
 		if (strcmp(name, "syncml-http-server") == 0 ||
-			strcmp(name, "palm-sync") == 0)
-			{
+			strcmp(name, "palm-sync") == 0) {
 				wait = TRUE;
 				break;
-			}
+		}
 	}
 	
 	if(!wait)
@@ -86,29 +72,37 @@ void msync_env_syncronize_group2(MSyncGroup *group)
 	else
 		osengine_wait_sync_end(group->engine, &error);
 		
-	if(error)
-		printf("Error synchronizing: %s\n", osync_error_print(&error));
-
+	if(error) {
+		msync_error_message(GTK_WINDOW(group->msync->mainwindow), TRUE, "Error synchronizing: %s\n", osync_error_print(&error));
+		goto error_finalize;
+	}
 	osengine_finalize(group->engine);
-	osengine_free(group->engine);	
+	osengine_free(group->engine);
+	group->engine = NULL;	
+	msync_group_set_sensitive(group, TRUE, TRUE);
+	return;
+
+error_finalize:
+	osengine_finalize(group->engine);
+error_free_engine:
+	osengine_free(group->engine);
+	group->engine = NULL;
+error:
+	osync_error_free(&error);
 	msync_group_set_sensitive(group, TRUE, TRUE);
 }
 
 void msync_env_syncronize_group(MSyncEnv *env, MSyncGroup *group)
 {
-printf("%s\n", __func__);
+	g_thread_create((GThreadFunc)_msync_env_syncronize_group, group, FALSE, NULL);
 
-GError* error;
-g_thread_create((GThreadFunc)msync_env_syncronize_group2, group, FALSE, &error);
-
-printf("%sENDE\n", __func__);	
 }
 
 void msync_env_remove_group(MSyncEnv *env, MSyncGroup *group)
 {
 	OSyncError *error = NULL;
 	if (!osync_group_delete(group->group, &error)) {
-		msync_error_message(GTK_WINDOW(group->msync), "Unable to delete group %s: %s\n", osync_group_get_name(group->group), osync_error_print(&error));
+		msync_error_message(GTK_WINDOW(group->msync), FALSE, "Unable to delete group %s: %s\n", osync_group_get_name(group->group), osync_error_print(&error));
 		osync_error_free(&error);
 	}
 	msync_group_free(group);
@@ -123,26 +117,27 @@ void msync_evn_newgroupdialog_show(MSyncEnv *env)
 
 void msync_env_newgroupdialog_add_group(MSyncEnv *env, char* groupname)
 {
+	OSyncError *error = NULL;
+	OSyncGroup *group;
+	
 	if(strlen(groupname) < 1) {
-		msync_error_message(GTK_WINDOW(env->mainwindow), "You have not entered a group name.");
+		msync_error_message(GTK_WINDOW(env->mainwindow), FALSE, "You have not entered a group name.");
 		return;		
 	}
 	
-	OSyncGroup *osyncgroup = osync_group_new(env->osync);
-	osync_group_set_name(osyncgroup, groupname);
+	group = osync_group_new(env->osync);
+	osync_group_set_name(group, groupname);
 
-	OSyncError *error = NULL;
-	if (!osync_group_save(osyncgroup, &error)) {
-		msync_error_message(GTK_WINDOW(env->mainwindow), "Unable to save group: %s\n", osync_error_print(&error));
+	if (!osync_group_save(group, &error)) {
+		msync_error_message(GTK_WINDOW(env->mainwindow), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 	}
 	
-	msync_group_new(env, osyncgroup);
+	msync_group_new(env, group);
 }
 
 void msync_evn_editgroupdialog_show(MSyncEnv *env, MSyncGroup* group)
 {
-printf("%s\n", __func__);
 	env->curgroup = group;
 	gtk_widget_show(env->editgroupdialog);
 	
@@ -179,7 +174,6 @@ printf("%s\n", __func__);
 
 void msync_env_editgroupdialog_update_treeview(MSyncEnv *env)
 {
-printf("%s\n", __func__);
 	int i;
 	GtkTreeModel *model;
 	GtkTreeStore *treestore;
@@ -217,9 +211,10 @@ printf("%s\n", __func__);
 
 void msync_env_editgroupdialog_save_settings(MSyncEnv *env, MSyncGroup* group)
 {
-printf("%s\n", __func__);
 	OSyncError* error = NULL;
+	MSyncPlugin* plugin = NULL;
 	
+	/* save group settings */
 	if(!env->curmember) {
 		char *tmp = (char *) gtk_entry_get_text(GTK_ENTRY(env->editgroupsettingsgroupnameentry));
 		if(strcmp(osync_group_get_name(group->group), tmp) != 0)
@@ -227,27 +222,23 @@ printf("%s\n", __func__);
 			osync_group_set_name(group->group, tmp);
 		
 			if (!osync_group_save(group->group, &error)) {
-				msync_error_message(GTK_WINDOW(env->editgroupdialog), "Unable to save group: %s\n", osync_error_print(&error));
+				msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
 				osync_error_free(&error);
 			}
 			msync_env_editgroupdialog_update_treeview(env);
 		}
+	/* save member settings */
 	}else{
-		OSyncError* error = NULL;
-		
-		int size;
-		MSyncPlugin* plugin;
-		
 		plugin = msync_plugin_find(env->plugins, osync_member_get_pluginname(env->curmember));
 		if(!plugin)
 			plugin = msync_plugin_find(env->plugins, "default");
 		
 		const char* data = plugin->msync_plugin_get_config(plugin);
 		osync_member_set_config(env->curmember, data, strlen(data));
-		free(data);
+		free((void *)data);
 
 		if (!osync_group_save(group->group, &error)) {
-			msync_error_message(GTK_WINDOW(env->editgroupdialog), "Unable to save group: %s\n", osync_error_print(&error));
+			msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
 			osync_error_free(&error);
 		}
 	}
@@ -349,18 +340,34 @@ void msync_env_editgroupaddmemberdialog_show(MSyncEnv *env)
 void msync_env_editgroupaddmemberdialog_add_member(MSyncEnv *env, OSyncPlugin* plugin)
 {
 	OSyncError* error = NULL;
-	OSyncMember *member = osync_member_new(env->curgroup->group);
+	OSyncMember *member = NULL;
+	
+	member = osync_member_new(env->curgroup->group);
 	if (!osync_member_instance_plugin(member, osync_plugin_get_name(plugin), &error)) {
-		msync_error_message(GTK_WINDOW(env->editgroupdialog), "Unable to instance plugin with name %s: %s\n", osync_plugin_get_name(plugin), osync_error_print(&error));
+		msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to instance plugin with name %s: %s\n", osync_plugin_get_name(plugin), osync_error_print(&error));
 		osync_error_free(&error);
 		return;
 	}
 		
 	if (!osync_member_save(member, &error)) {
-		msync_error_message(GTK_WINDOW(env->editgroupdialog), "Unable to save member: %s\n", osync_error_print(&error));
+		msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save member: %s\n", osync_error_print(&error));
 		osync_error_free(&error);
 	}
 	msync_env_editgroupdialog_update_treeview(env);
+}
+
+void msync_evn_syncronizegroupconflictdialog_show(MSyncEnv *env, gboolean threadsafe)
+{
+	if(threadsafe) {
+		gdk_threads_enter();
+	}
+	
+	gtk_widget_show(env->syncronizegroupconflictdialog);
+	
+	if(threadsafe) {
+		gdk_flush();	
+		gdk_threads_leave ();
+	}
 }
 
 void msync_evn_aboutdialog_show(MSyncEnv *env)

@@ -1,7 +1,7 @@
 #ifndef MSYNC_CALLBACKS_H_
 #define MSYNC_CALLBACKS_H_
 
-void on_exit(gpointer user_data);
+void on_msync_exit(gpointer user_data);
 
 void on_newgroupbuttonapply_clicked(GtkButton *button, gpointer user_data);
 void on_editgroupclosebutton_clicked(GtkButton* button, gpointer user_data);

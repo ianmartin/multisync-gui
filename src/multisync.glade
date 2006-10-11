@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.0.2 on Tue Oct 10 14:27:27 2006 by daniel@f-bert
+<!--Generated with glade3 3.0.2 on Tue Oct 10 14:48:53 2006 by daniel@f-bert
 	Version: 3.0.1
 	Date: Sat Sep 30 15:03:07 2006
 	User: daniel
@@ -614,6 +614,7 @@
         <child>
           <widget class="GtkVBox" id="vbox7">
             <property name="visible">True</property>
+            <property name="border_width">10</property>
             <property name="spacing">10</property>
             <child>
               <widget class="GtkHBox" id="hbox9">
