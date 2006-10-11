@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
-#include <glib-object.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <glade/glade.h>
