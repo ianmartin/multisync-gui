@@ -10,7 +10,7 @@ typedef enum MSyncResolution {
 } MSyncResolution;
 
 struct MSyncGroup {
-	MSyncEnv* msync;
+	MSyncEnv* msyncenv;
 	OSyncGroup *group;
 	GtkWidget* widget;
 	GtkWidget* buttondelete;
@@ -20,6 +20,10 @@ struct MSyncGroup {
 	GtkWidget* vbox;
 	GtkWidget* enginelabel;
 	GList* memberstatuslabel;
+	GtkWidget* syncronizegroupconflictdialog;
+	GtkWidget* syncronizegroupconflictcontainer;
+	GtkWidget* syncronizegroupconflictbuttons;
+	GtkWidget* syncronizegroupcheckbuttonremember;
 	OSyncEngine* engine;
 	GCond* cond;
 	GMutex* mutex;
@@ -29,17 +33,27 @@ struct MSyncGroup {
 	int winningside;
 };
 
-void msync_group_syncronize_show_conflict_dialog(OSyncEngine *engine, OSyncMapping *mapping, void *user_data);
-void msync_group_syncronize_update_member_status(OSyncMemberUpdate *status, void *user_data);
-void mapping_status(OSyncMappingUpdate *status, void *user_data);
-void msync_group_syncronize_update_engine_status(OSyncEngine *engine, OSyncEngineUpdate *status, void *user_data);
-void entry_status(OSyncEngine *engine, OSyncChangeUpdate *status, void *user_data);
-
 void msync_group_new(MSyncEnv *env, OSyncGroup *osyncgroup);
 void msync_group_free(MSyncGroup *group);
-void msync_group_set_sensitive(MSyncGroup *group, gboolean gtkthreadsafe, gboolean sensitive);
-void msync_group_update_widget(MSyncGroup *group);
+void msync_group_remove(MSyncGroup *group);
+void msync_group_syncronize(MSyncGroup *group);
+void msync_group_syncronize2(MSyncGroup *group);
+void msync_group_syncronize_enginestatus(OSyncEngine *engine, OSyncEngineUpdate *status, void *user_data);
+void msync_group_syncronize_memberstatus(OSyncMemberUpdate *status, void *user_data);
+void msync_group_syncronize_mappingstatus(OSyncMappingUpdate *status, void *user_data);
+void msync_group_syncronize_entrystatus(OSyncEngine *engine, OSyncChangeUpdate *status, void *user_data);
+void msync_group_syncronize_conflict(OSyncEngine *engine, OSyncMapping *mapping, void *user_data);
+void msync_group_syncronize_conflictdialog_show(MSyncGroup *group, gboolean threadsafe);
+void msync_group_syncronize_unlock_conflict_dialog(MSyncGroup* group);
+void msync_group_syncronize_mapping_duplicate(MSyncGroup* group);
+void msync_group_syncronize_mapping_ignore(MSyncGroup* group);
+void msync_group_syncronize_mapping_newer(MSyncGroup* group);
+void msync_group_syncronize_mapping_select(GtkButton* button, MSyncGroup* group);
 void msync_group_update_engine_status(MSyncGroup *group, gboolean gtkthreadsafe, const char* msg);
 void msync_group_update_member_status(MSyncGroup *group, OSyncMember *member, const char* msg);
+void msync_group_set_sensitive(MSyncGroup *group, gboolean gtkthreadsafe, gboolean sensitive);
+void msync_group_update_widget(MSyncGroup *group);
+GtkWidget *msync_group_create_widget(MSyncGroup *group);
+void msync_group_create_syncronizegroupconflictdialog(MSyncGroup *group);
 
 #endif /*MSYNC_GROUP_H_*/

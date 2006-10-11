@@ -1,14 +1,18 @@
 #ifndef MULTISYNC_H_
 #define MULTISYNC_H_
 
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <glade/glade.h>
 #include <opensync/opensync.h>
 #include <osengine/engine.h>
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
+
+#ifndef MULTISYNC_GLADE
+#define MULTISYNC_GLADE "multisync.glade"
+#endif
 
 typedef struct MSyncEnv MSyncEnv;
 typedef struct MSyncGroup MSyncGroup;

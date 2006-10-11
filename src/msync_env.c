@@ -1,10 +1,108 @@
 #include "multisync.h"
 
+int msync_env_init(MSyncEnv* env)
+{
+	OSyncError *error = NULL;
+	GtkWidget *widget;
+	char *configdir = NULL;
+	const char *load_groups = "TRUE";
+	const char *load_plugins = "TRUE";
+	const char *load_formats = "TRUE";
+	
+	env->osyncenv = osync_env_new();
+	
+	if (!osync_env_initialize(env->osyncenv, &error)) {
+		osync_error_update(&error, "Unable to initialize environment: %s\n", osync_error_print(&error));
+		goto error_free_env;
+	}
 
+	osync_env_set_option(env->osyncenv, "GROUPS_DIRECTORY", configdir);
+	osync_env_set_option(env->osyncenv, "LOAD_GROUPS", load_groups);
+	osync_env_set_option(env->osyncenv, "LOAD_PLUGINS", load_plugins);
+	osync_env_set_option(env->osyncenv, "LOAD_FORMATS", load_formats);
+
+	env->plugins = NULL;
+	env->gladexml = glade_xml_new(MULTISYNC_GLADE, NULL, NULL);
+	env->mainwindow = glade_xml_get_widget(env->gladexml, "mainwindow");
+	env->groupcontainer = glade_xml_get_widget(env->gladexml, "groupcontainer1");
+	env->newgroupdialog = glade_xml_get_widget(env->gladexml, "newgroupdialog");
+	env->newgroupentry = glade_xml_get_widget(env->gladexml, "newgroupentry");
+	env->editgroupdialog = glade_xml_get_widget(env->gladexml, "editgroupdialog");
+	env->editgrouptreeview = glade_xml_get_widget(env->gladexml, "editgrouptreeview");
+	env->editgrouplabel = glade_xml_get_widget(env->gladexml, "editgrouplabel");
+	env->editgroupplugincontainer = glade_xml_get_widget(env->gladexml, "editgroupplugincontainer");
+	env->editgroupsettings = glade_xml_get_widget(env->gladexml, "editgroupsettings");
+	env->editgroupsettingsgroupnameentry = glade_xml_get_widget(env->gladexml, "editgroupsettingsgroupnameentry");
+	env->editgroupaddmemberdialog = glade_xml_get_widget(env->gladexml, "editgroupaddmemberdialog");
+	env->editgroupaddmembertreeview = glade_xml_get_widget(env->gladexml, "editgroupaddmembertreeview");
+	env->aboutdialog = glade_xml_get_widget(env->gladexml, "aboutdialog");
+
+	g_signal_connect_swapped(G_OBJECT(env->mainwindow), "delete_event", G_CALLBACK(on_msync_exit), env);
+	g_signal_connect(G_OBJECT(env->newgroupdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
+	g_signal_connect(G_OBJECT(env->newgroupdialog), "response", G_CALLBACK(gtk_widget_hide), NULL);
+	g_signal_connect(G_OBJECT(env->editgroupdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
+	g_signal_connect(G_OBJECT(env->editgroupdialog), "response", G_CALLBACK(gtk_widget_hide), NULL);
+	g_signal_connect(G_OBJECT(env->editgroupaddmemberdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
+	g_signal_connect(G_OBJECT(env->editgroupaddmemberdialog), "response", G_CALLBACK(gtk_widget_hide), NULL);
+	g_signal_connect(G_OBJECT(env->aboutdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
+	g_signal_connect(G_OBJECT(env->aboutdialog), "response", G_CALLBACK(gtk_widget_hide), NULL);
+
+	widget = glade_xml_get_widget (env->gladexml, "toolbutton1");
+	g_signal_connect_swapped(G_OBJECT(widget), "clicked", G_CALLBACK(msync_evn_newgroupdialog_show), env);
+
+	//widget = glade_xml_get_widget (gladexml, "toolbutton2");
+	//g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(), NULL);
+
+	widget = glade_xml_get_widget(env->gladexml, "toolbutton3");
+	g_signal_connect_swapped(G_OBJECT(widget), "clicked", G_CALLBACK(on_msync_exit), env);
+                   
+	widget = glade_xml_get_widget(env->gladexml, "toolbutton4");
+	g_signal_connect_swapped(G_OBJECT(widget), "clicked", G_CALLBACK(gtk_widget_show), env->aboutdialog);
+
+	widget = glade_xml_get_widget (env->gladexml, "newgroupbuttonapply");
+	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_newgroupbuttonapply_clicked), env);	
+	
+	widget = glade_xml_get_widget(env->gladexml, "editgroupclosebutton");	
+	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_editgroupclosebutton_clicked), env);
+	
+	widget = glade_xml_get_widget(env->gladexml, "editgroupaddmemberbutton");	
+	g_signal_connect_swapped(G_OBJECT(widget), "clicked", G_CALLBACK(msync_env_editgroupaddmemberdialog_show), env);
+	
+	widget = glade_xml_get_widget(env->gladexml, "editgroupaddmemberapplybutton");	
+	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_editgroupaddmemberapplybutton_clicked), env);		
+
+	GtkTreeSelection* treeselection = gtk_tree_view_get_selection(GTK_TREE_VIEW(env->editgrouptreeview));
+	g_signal_connect(G_OBJECT(treeselection), "changed", G_CALLBACK(on_editgrouptreeview_change), env);
+
+	msync_env_load_groups(env);
+	msync_env_load_plugins(env);
+	return TRUE;
+
+error_free_env:
+	osync_env_free(env->osyncenv);
+	fprintf(stderr, "%s\n", osync_error_print(&error));
+	osync_error_free(&error);
+	return FALSE;
+}
 
 void msync_env_finalize(MSyncEnv* env)
 {
+	OSyncError* error;
+	
 	g_list_foreach(env->groups, (GFunc)msync_group_free, NULL);
+	
+	if (!osync_env_finalize(env->osyncenv, &error)) {
+		osync_error_update(&error, "Unable to finalize environment: %s\n", osync_error_print(&error));
+		goto error_free_env;
+	}
+	osync_env_free(env->osyncenv);
+	return;
+	
+error_free_env:
+	osync_env_free(env->osyncenv);
+	fprintf(stderr, "%s\n", osync_error_print(&error));
+	osync_error_free(&error);
+	return;
 }
 
 void msync_env_load_plugins(MSyncEnv* env)
@@ -20,93 +118,10 @@ void msync_env_load_plugins(MSyncEnv* env)
 void msync_env_load_groups(MSyncEnv *env)
 {
 	int i;
-	for (i = 0; i < osync_env_num_groups(env->osync); i++) {
-		OSyncGroup* group = osync_env_nth_group(env->osync, i);
+	for (i = 0; i < osync_env_num_groups(env->osyncenv); i++) {
+		OSyncGroup* group = osync_env_nth_group(env->osyncenv, i);
 		msync_group_new(env, group);
 	}
-}
-
-
-void _msync_env_syncronize_group(MSyncGroup *group)
-{
-	OSyncError *error = NULL;
-	OSyncMember *member = NULL;
-	gboolean wait = FALSE;
-	int i, num;
-	
-	msync_group_set_sensitive(group, TRUE, FALSE);
-	group->resolution = MSYNC_RESOLUTION_UNKNOWN;
-	group->winningside = 0;
-	
-	group->engine = osengine_new(group->group, &error);
-	if (!group->engine) {
-		msync_error_message(GTK_WINDOW(group->msync->mainwindow), TRUE, "Error while creating syncengine: %s\n", osync_error_print(&error));
-		goto error;
-	}
-	
-	osengine_set_memberstatus_callback(group->engine, msync_group_syncronize_update_member_status, group);
-	osengine_set_enginestatus_callback(group->engine, msync_group_syncronize_update_engine_status, group);
-	osengine_set_conflict_callback(group->engine, msync_group_syncronize_show_conflict_dialog, group);
-	osengine_set_changestatus_callback(group->engine, entry_status, NULL);
-	osengine_set_mappingstatus_callback(group->engine, mapping_status, NULL);
-	
-	if (!osengine_init(group->engine, &error)) {
-		msync_error_message(GTK_WINDOW(group->msync->mainwindow), TRUE, "Error while initializing syncengine: %s\n", osync_error_print(&error));
-		goto error_free_engine;
-	}
-
-	num = osync_group_num_members(group->group);
-	for(i=0; i<num; i++)
-	{
-		member = osync_group_nth_member(group->group, i);
-		const char* name = osync_member_get_pluginname(member);
-		if (strcmp(name, "syncml-http-server") == 0 ||
-			strcmp(name, "palm-sync") == 0) {
-				wait = TRUE;
-				break;
-		}
-	}
-	
-	if(!wait)
-		osengine_sync_and_block(group->engine, &error);
-	else
-		osengine_wait_sync_end(group->engine, &error);
-		
-	if(error) {
-		msync_error_message(GTK_WINDOW(group->msync->mainwindow), TRUE, "Error synchronizing: %s\n", osync_error_print(&error));
-		goto error_finalize;
-	}
-	osengine_finalize(group->engine);
-	osengine_free(group->engine);
-	group->engine = NULL;	
-	msync_group_set_sensitive(group, TRUE, TRUE);
-	return;
-
-error_finalize:
-	osengine_finalize(group->engine);
-error_free_engine:
-	osengine_free(group->engine);
-	group->engine = NULL;
-error:
-	osync_error_free(&error);
-	msync_group_set_sensitive(group, TRUE, TRUE);
-}
-
-void msync_env_syncronize_group(MSyncEnv *env, MSyncGroup *group)
-{
-	g_thread_create((GThreadFunc)_msync_env_syncronize_group, group, FALSE, NULL);
-
-}
-
-void msync_env_remove_group(MSyncEnv *env, MSyncGroup *group)
-{
-	OSyncError *error = NULL;
-	if (!osync_group_delete(group->group, &error)) {
-		msync_error_message(GTK_WINDOW(group->msync), FALSE, "Unable to delete group %s: %s\n", osync_group_get_name(group->group), osync_error_print(&error));
-		osync_error_free(&error);
-	}
-	msync_group_free(group);
-	
 }
 
 void msync_evn_newgroupdialog_show(MSyncEnv *env)
@@ -125,7 +140,7 @@ void msync_env_newgroupdialog_add_group(MSyncEnv *env, char* groupname)
 		return;		
 	}
 	
-	group = osync_group_new(env->osync);
+	group = osync_group_new(env->osyncenv);
 	osync_group_set_name(group, groupname);
 
 	if (!osync_group_save(group, &error)) {
@@ -246,7 +261,6 @@ void msync_env_editgroupdialog_save_settings(MSyncEnv *env, MSyncGroup* group)
 
 void msync_env_editgroupdialog_show_extended(MSyncEnv *env, OSyncMember* member)
 {
-printf("%s\n", __func__);
 	env->curmember = member;
 	
 	gchar* tmp;
@@ -315,8 +329,8 @@ void msync_env_editgroupaddmemberdialog_show(MSyncEnv *env)
 	
 	treestore = gtk_tree_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_POINTER);
 	GdkPixbuf* pixbuf = gtk_widget_render_icon(env->editgroupaddmemberdialog, "gtk-go-forward", GTK_ICON_SIZE_SMALL_TOOLBAR, NULL);
-	for (i = 0; i < osync_env_num_plugins(env->osync); i++) {
-		plugin = osync_env_nth_plugin(env->osync, i);
+	for (i = 0; i < osync_env_num_plugins(env->osyncenv); i++) {
+		plugin = osync_env_nth_plugin(env->osyncenv, i);
 		gtk_tree_store_append(treestore, &toplevel, NULL);
 		gtk_tree_store_set (treestore, &toplevel,
 							0, pixbuf,
@@ -354,20 +368,6 @@ void msync_env_editgroupaddmemberdialog_add_member(MSyncEnv *env, OSyncPlugin* p
 		osync_error_free(&error);
 	}
 	msync_env_editgroupdialog_update_treeview(env);
-}
-
-void msync_evn_syncronizegroupconflictdialog_show(MSyncEnv *env, gboolean threadsafe)
-{
-	if(threadsafe) {
-		gdk_threads_enter();
-	}
-	
-	gtk_widget_show(env->syncronizegroupconflictdialog);
-	
-	if(threadsafe) {
-		gdk_flush();	
-		gdk_threads_leave ();
-	}
 }
 
 void msync_evn_aboutdialog_show(MSyncEnv *env)
