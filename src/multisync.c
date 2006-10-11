@@ -52,7 +52,7 @@ int main (int argc, char *argv[])
 	env->syncronizegroupcheckbuttonremember = glade_xml_get_widget(env->window, "syncronizegroupcheckbuttonremember");
 	env->aboutdialog = glade_xml_get_widget(env->window, "aboutdialog");
 
-	g_signal_connect_swapped(G_OBJECT(env->mainwindow), "delete_event", G_CALLBACK(on_exit), env);
+	g_signal_connect_swapped(G_OBJECT(env->mainwindow), "delete_event", G_CALLBACK(on_msync_exit), env);
 	g_signal_connect(G_OBJECT(env->newgroupdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
 	g_signal_connect(G_OBJECT(env->newgroupdialog), "response", G_CALLBACK(gtk_widget_hide), NULL);
 	g_signal_connect(G_OBJECT(env->editgroupdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
@@ -71,22 +71,22 @@ int main (int argc, char *argv[])
 	//g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(), NULL);
 
 	widget = glade_xml_get_widget(env->window, "toolbutton3");
-	g_signal_connect_swapped(G_OBJECT(widget), "clicked", G_CALLBACK(on_exit), env);
-
+	g_signal_connect_swapped(G_OBJECT(widget), "clicked", G_CALLBACK(on_msync_exit), env);
+                   
 	widget = glade_xml_get_widget(env->window, "toolbutton4");
-	g_signal_connect(G_OBJECT(widget), "clicked", 	G_CALLBACK(on_toolbutton_about_clicked), env);
+	g_signal_connect_swapped(G_OBJECT(widget), "clicked", G_CALLBACK(on_toolbutton_about_clicked), env);
 
 	widget = glade_xml_get_widget (env->window, "newgroupbuttonapply");
-	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_newgroupbuttonapply_clicked), env);
-
-	widget = glade_xml_get_widget(env->window, "editgroupclosebutton");
+	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_newgroupbuttonapply_clicked), env);	
+	
+	widget = glade_xml_get_widget(env->window, "editgroupclosebutton");	
 	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_editgroupclosebutton_clicked), env);
-
-	widget = glade_xml_get_widget(env->window, "editgroupaddmemberbutton");
+	
+	widget = glade_xml_get_widget(env->window, "editgroupaddmemberbutton");	
 	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_editgroupaddmemberbutton_clicked), env);
-
-	widget = glade_xml_get_widget(env->window, "editgroupaddmemberapplybutton");
-	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_editgroupaddmemberapplybutton_clicked), env);
+	
+	widget = glade_xml_get_widget(env->window, "editgroupaddmemberapplybutton");	
+	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_editgroupaddmemberapplybutton_clicked), env);		
 
 	GtkTreeSelection* treeselection = gtk_tree_view_get_selection(GTK_TREE_VIEW(env->editgrouptreeview));
 	g_signal_connect(G_OBJECT(treeselection), "changed", G_CALLBACK(on_editgrouptreeview_change), env);
