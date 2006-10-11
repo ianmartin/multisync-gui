@@ -770,7 +770,8 @@ void msync_group_create_syncronizegroupconflictdialog(MSyncGroup *group)
   group->conflictcheckbuttonremember = syncronizegroupcheckbuttonremember; 
   group->conflictbuttons = syncronizegroupconflictbuttons;
   group->conflictcontainer = syncronizegroupconflictcontainer;
-  gtk_window_set_deletable(GTK_WINDOW(syncronizegroupconflictdialog), FALSE);
+  //since gtk 2.10
+  //gtk_window_set_deletable(GTK_WINDOW(syncronizegroupconflictdialog), FALSE);
   g_signal_connect(G_OBJECT(group->conflictdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
-  g_signal_connect(G_OBJECT(group->conflictdialog), "response", G_CALLBACK(gtk_widget_hide), NULL);
+  g_signal_connect(G_OBJECT(group->conflictdialog), "response", G_CALLBACK(gtk_true), NULL);
 }
