@@ -1,0 +1,6 @@
+#! /usr/bin/env python
+# encoding: utf-8
+def build(bld):
+	import Common
+	Common.install_files('PREFIX', 'share/pixmaps/multisync-qad/', 'multisync.png')
+

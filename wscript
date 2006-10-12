@@ -14,7 +14,7 @@ blddir = '_build_'
 
 def build(bld):
     # process subfolders from here
-    bld.add_subdirs('src')
+    bld.add_subdirs('src misc')
 
 def configure(conf):
 	import Params
@@ -50,6 +50,7 @@ def configure(conf):
 		sys.exit(1)
 	if not Params.g_options.os_develop_mode :
 		conf.add_define('MULTISYNC_DATA', os.path.join(conf.env['PREFIX'], 'share/multisync-qad'))
+		conf.add_define('MULTISYNC_ICON_DIR', os.path.join(conf.env['PREFIX'], 'share/pixmaps/multisync-qad'))
 	
 	#Set project global include path
 	conf.env['CXXFLAGS_GLOBAL_PATH'] = '-I%s' % os.getcwd()
