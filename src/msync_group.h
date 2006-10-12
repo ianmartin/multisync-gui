@@ -54,6 +54,7 @@ void msync_group_syncronize_mapping_select(GtkButton* button, MSyncGroup* group)
 void msync_group_update_engine_status(MSyncGroup *group, gboolean gtkthreadsafe, char *format, ...);
 void msync_group_update_member_status(MSyncGroup *group, OSyncMember *member, const char* msg);
 void msync_group_update_entry_status(MSyncGroup *group, gboolean gtkthreadsafe, char *format, ...);
+void msync_group_update_last_synchronization_status(MSyncGroup *group, gboolean gtkthreadsafe);
 void msync_group_set_sensitive(MSyncGroup *group, gboolean gtkthreadsafe, gboolean sensitive);
 void msync_group_update_widget(MSyncGroup *group);
 GtkWidget *msync_group_create_widget(MSyncGroup *group);

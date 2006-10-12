@@ -13,6 +13,7 @@ void msync_group_new(MSyncEnv *env, OSyncGroup *osyncgroup)
 	gtk_box_pack_start (GTK_BOX (env->groupcontainer), group->widget, FALSE, FALSE, 0);
 	
 	msync_group_create_syncronizegroupconflictdialog(group);
+	msync_group_update_last_synchronization_status(group, FALSE);
 }
 
 void msync_group_free(MSyncGroup *group)
@@ -508,6 +509,22 @@ void msync_group_update_entry_status(MSyncGroup *group, gboolean gtkthreadsafe, 
 	if(gtkthreadsafe) {
 		gdk_flush();	
 		gdk_threads_leave ();
+	}
+}
+
+void msync_group_update_last_synchronization_status(MSyncGroup *group, gboolean gtkthreadsafe)
+{
+	char data[200];
+	int slen;
+	
+	time_t timep = osync_group_get_last_synchronization(group->group);
+	if(timep)
+	{
+		struct tm* result = localtime(&timep);
+		strftime(data, slen, "Last syncronized on: %d/%m/%Y %H:%M", result);
+		msync_group_update_engine_status(group, gtkthreadsafe, data);
+	}else{
+		msync_group_update_engine_status(group, gtkthreadsafe, "Not syncronized yet.");
 	}
 }
 
