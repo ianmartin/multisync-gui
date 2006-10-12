@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.0.2 on Thu Oct 12 20:45:49 2006 by daniel@f-bert
+<!--Generated with glade3 3.0.2 on Thu Oct 12 21:39:32 2006 by daniel@f-bert
 	Version: 3.0.1
 	Date: Sat Sep 30 15:03:07 2006
 	User: daniel
@@ -317,6 +317,7 @@
     <property name="copyright" translatable="yes">Copyright © 2006 Daniel Friedrich</property>
     <property name="comments">Multisync is a synchronization program for personal information such as calendars, addressbooks etc.</property>
     <property name="website">http://www.multisync.org</property>
+    <property name="website_label" translatable="yes">multisync</property>
     <property name="license" translatable="yes">Multisync is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation; either version 2
@@ -341,14 +342,12 @@ Christoph Lukas &lt;christoph.lukas@gmx.net&gt;
 Tobias Karlsson &lt;tobbe@island.liu.se&gt;
 Björn Torkelsson &lt;torkel@acc.umu.se&gt;
 Eike Lang &lt;mail@elang.de&gt;</property>
+    <property name="logo">multisync.png</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK</property>
         <property name="spacing">12</property>
-        <child>
-          <placeholder/>
-        </child>
         <child internal-child="action_area">
           <widget class="GtkHButtonBox" id="dialog-action_area1">
             <property name="visible">True</property>
@@ -528,13 +527,6 @@ Eike Lang &lt;mail@elang.de&gt;</property>
                                 <property name="n_rows">1</property>
                                 <property name="n_columns">2</property>
                                 <child>
-                                  <widget class="GtkLabel" id="label8">
-                                    <property name="visible">True</property>
-                                    <property name="xalign">0</property>
-                                    <property name="label" translatable="yes">Group name:</property>
-                                  </widget>
-                                </child>
-                                <child>
                                   <widget class="GtkEntry" id="editgroupsettingsgroupnameentry">
                                     <property name="visible">True</property>
                                   </widget>
@@ -542,6 +534,13 @@ Eike Lang &lt;mail@elang.de&gt;</property>
                                     <property name="left_attach">1</property>
                                     <property name="right_attach">2</property>
                                   </packing>
+                                </child>
+                                <child>
+                                  <widget class="GtkLabel" id="label8">
+                                    <property name="visible">True</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">Group name:</property>
+                                  </widget>
                                 </child>
                               </widget>
                               <packing>

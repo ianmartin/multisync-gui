@@ -100,6 +100,11 @@ void msync_group_syncronize2(MSyncGroup *group)
 		msync_error_message(GTK_WINDOW(group->msyncenv->mainwindow), TRUE, "Error synchronizing: %s\n", osync_error_print(&error));
 		goto error_finalize;
 	}
+	osync_group_set_last_synchronization(group->group, time(NULL));
+	if (!osync_group_save(group->group, &error)) {
+		msync_error_message(GTK_WINDOW(group->msyncenv->mainwindow), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
+		goto error_finalize;
+	}
 	osengine_finalize(group->engine);
 	osengine_free(group->engine);
 	group->engine = NULL;	
