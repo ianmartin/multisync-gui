@@ -7,9 +7,9 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <glade/glade.h>
+#include <libxml/parser.h>
 #include <opensync/opensync.h>
 #include <osengine/engine.h>
-
 #ifndef MULTISYNC_GLADE
 #define MULTISYNC_GLADE "multisync.glade"
 #endif
@@ -17,7 +17,7 @@
 typedef struct MSyncEnv MSyncEnv;
 typedef struct MSyncGroup MSyncGroup;
 typedef struct MSyncPlugin MSyncPlugin;
-typedef void (* MSyncPluginSetConfig)(MSyncPlugin*, const char *);
+typedef void (* MSyncPluginSetConfig)(MSyncPlugin*, OSyncMember *member, const char *);
 typedef const char* (* MSyncPluginGetConfig)(MSyncPlugin*);
 
 #include "msync_env.h"
@@ -26,5 +26,6 @@ typedef const char* (* MSyncPluginGetConfig)(MSyncPlugin*);
 #include "msync_support.h"
 #include "msync_callbacks.h"
 #include "plugins/msync_default.h"
+#include "plugins/msync_evo2sync.h"
 
 #endif /*MULTISYNC_H_*/

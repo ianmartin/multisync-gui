@@ -16,7 +16,8 @@ struct MSyncGroup {
 	GtkWidget* buttondelete;
 	GtkWidget* buttonedit;
 	GtkWidget* buttonsyncronize;
-	GtkWidget* label;
+	GtkWidget* grouplabel;
+	GtkWidget* entrylabel;
 	GtkWidget* vbox;
 	GtkWidget* enginelabel;
 	GList* memberstatuslabel;
@@ -30,6 +31,8 @@ struct MSyncGroup {
 	gboolean go;
 	MSyncResolution resolution;
 	int winningside;
+	unsigned int entries_reveived;
+	unsigned int entries_sended;
 };
 
 void msync_group_new(MSyncEnv *env, OSyncGroup *osyncgroup);
@@ -48,8 +51,9 @@ void msync_group_syncronize_mapping_duplicate(MSyncGroup* group);
 void msync_group_syncronize_mapping_ignore(MSyncGroup* group);
 void msync_group_syncronize_mapping_newer(MSyncGroup* group);
 void msync_group_syncronize_mapping_select(GtkButton* button, MSyncGroup* group);
-void msync_group_update_engine_status(MSyncGroup *group, gboolean gtkthreadsafe, const char* msg);
+void msync_group_update_engine_status(MSyncGroup *group, gboolean gtkthreadsafe, char *format, ...);
 void msync_group_update_member_status(MSyncGroup *group, OSyncMember *member, const char* msg);
+void msync_group_update_entry_status(MSyncGroup *group, gboolean gtkthreadsafe, char *format, ...);
 void msync_group_set_sensitive(MSyncGroup *group, gboolean gtkthreadsafe, gboolean sensitive);
 void msync_group_update_widget(MSyncGroup *group);
 GtkWidget *msync_group_create_widget(MSyncGroup *group);

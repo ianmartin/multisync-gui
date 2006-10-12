@@ -41,7 +41,7 @@ int msync_env_init(MSyncEnv* env)
 	g_signal_connect(G_OBJECT(env->newgroupdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
 	g_signal_connect(G_OBJECT(env->newgroupdialog), "response", G_CALLBACK(gtk_widget_hide), NULL);
 	g_signal_connect(G_OBJECT(env->editgroupdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
-	g_signal_connect(G_OBJECT(env->editgroupdialog), "response", G_CALLBACK(gtk_widget_hide), NULL);
+	g_signal_connect(G_OBJECT(env->editgroupdialog), "response", G_CALLBACK(gtk_true), NULL);
 	g_signal_connect(G_OBJECT(env->editgroupaddmemberdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
 	g_signal_connect(G_OBJECT(env->editgroupaddmemberdialog), "response", G_CALLBACK(gtk_widget_hide), NULL);
 	g_signal_connect(G_OBJECT(env->aboutdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
@@ -113,6 +113,15 @@ void msync_env_load_plugins(MSyncEnv* env)
 							msync_defaultplugin_get_config,
 							msync_defaultplugin_set_config,
 							NULL);
+	
+	MSyncEvo2Sync* evo2sync = g_malloc0(sizeof(MSyncEvo2Sync));
+	GtkWidget* widget = msync_evo2sync_create_widget(evo2sync);
+	msync_plugin_register ( &(env->plugins),
+							"evo2-sync",
+							widget,
+							msync_evo2sync_get_config,
+							msync_evo2sync_set_config,
+							evo2sync);
 }
 
 void msync_env_load_groups(MSyncEnv *env)
@@ -287,15 +296,14 @@ void msync_env_editgroupdialog_show_extended(MSyncEnv *env, OSyncMember* member)
 		char *data;
 		int size;
 		MSyncPlugin* plugin;
-		
 		plugin = msync_plugin_find(env->plugins, osync_member_get_pluginname(member));
 		if(!plugin)
 			plugin = msync_plugin_find(env->plugins, "default");
-			
+	
 		gtk_container_add(GTK_CONTAINER(env->editgroupplugincontainer), plugin->widget);
 		gtk_widget_show(plugin->widget);
 		osync_member_get_config_or_default(member, &data, &size, &error);
-		plugin->msync_plugin_set_config(plugin, data);
+		plugin->msync_plugin_set_config(plugin, member, data);
 	}	
 }
 

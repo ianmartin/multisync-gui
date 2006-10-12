@@ -58,6 +58,8 @@ void msync_group_syncronize2(MSyncGroup *group)
 	msync_group_set_sensitive(group, TRUE, FALSE);
 	group->resolution = MSYNC_RESOLUTION_UNKNOWN;
 	group->winningside = 0;
+	group->entries_reveived = 0;
+	group->entries_sended = 0;
 	
 	group->engine = osengine_new(group->group, &error);
 	if (!group->engine) {
@@ -67,7 +69,7 @@ void msync_group_syncronize2(MSyncGroup *group)
 	
 	osengine_set_enginestatus_callback(group->engine, msync_group_syncronize_enginestatus, group);
 	osengine_set_memberstatus_callback(group->engine, msync_group_syncronize_memberstatus, group);
-	osengine_set_changestatus_callback(group->engine, msync_group_syncronize_entrystatus, NULL);
+	osengine_set_changestatus_callback(group->engine, msync_group_syncronize_entrystatus, group);
 	osengine_set_mappingstatus_callback(group->engine, msync_group_syncronize_mappingstatus, NULL);
 	osengine_set_conflict_callback(group->engine, msync_group_syncronize_conflict, group);
 	
@@ -146,10 +148,12 @@ void msync_group_syncronize_enginestatus(OSyncEngine *engine, OSyncEngineUpdate 
 		case ENG_SYNC_SUCCESSFULL:
 			printf("The sync was successful\n");
 			msync_group_update_engine_status(group, TRUE, "The sync was successful");
+			msync_group_update_entry_status(group, TRUE, "");
 			break;
 		case ENG_ERROR:
 			printf("The sync failed: %s\n", osync_error_print(&(status->error)));
-			msync_group_update_engine_status(group, TRUE, "The sync failed");
+			msync_group_update_engine_status(group, TRUE, "The sync failed: %s", osync_error_print(&(status->error)));
+			msync_group_update_entry_status(group, TRUE, "");
 			break;
 	}
 }
@@ -158,7 +162,7 @@ void msync_group_syncronize_memberstatus(OSyncMemberUpdate *status, void *user_d
 {
 	g_assert(user_data);
 	MSyncGroup* group = (MSyncGroup *)user_data;
-	
+
 	switch (status->type) {
 		case MEMBER_CONNECTED:
 			msync_group_update_member_status(group, status->member, "Connected");
@@ -216,6 +220,9 @@ void msync_group_syncronize_mappingstatus(OSyncMappingUpdate *status, void *user
 
 void msync_group_syncronize_entrystatus(OSyncEngine *engine, OSyncChangeUpdate *status, void *user_data)
 {
+	g_assert(user_data);
+	MSyncGroup* group = (MSyncGroup *)user_data;
+	
 	switch (status->type) {
 		case CHANGE_RECEIVED_INFO:
 			printf("Received an entry %s without data from member %i. Changetype %s\n",
@@ -223,6 +230,8 @@ void msync_group_syncronize_entrystatus(OSyncEngine *engine, OSyncChangeUpdate *
 					OSyncChangeType2String(osync_change_get_changetype(status->change)));
 			break;
 		case CHANGE_RECEIVED:
+			group->entries_reveived++;
+			msync_group_update_entry_status(group, TRUE, "%i entries received", group->entries_reveived);
 			printf("Received an entry %s with data of size %i from member %i. Changetype %s\n",
 					osync_change_get_uid(status->change),
 					osync_change_get_datasize(status->change),
@@ -230,6 +239,8 @@ void msync_group_syncronize_entrystatus(OSyncEngine *engine, OSyncChangeUpdate *
 					OSyncChangeType2String(osync_change_get_changetype(status->change)));
 			break;
 		case CHANGE_SENT:
+			group->entries_sended++;
+			msync_group_update_entry_status(group, TRUE, "%i entries sent", group->entries_sended);
 			printf("Sent an entry %s of size %i to member %i. Changetype %s\n",
 					osync_change_get_uid(status->change),
 					osync_change_get_datasize(status->change),
@@ -446,13 +457,18 @@ void msync_group_syncronize_mapping_select(GtkButton* button, MSyncGroup* group)
 	msync_group_syncronize_unlock_conflict_dialog(group);
 }
 
-void msync_group_update_engine_status(MSyncGroup *group, gboolean gtkthreadsafe, const char* msg)
+void msync_group_update_engine_status(MSyncGroup *group, gboolean gtkthreadsafe, char *format, ...)
 {
 	if(gtkthreadsafe) {
 		gdk_threads_enter();
 	}
 	
+	va_list args;
+	va_start(args, format);
+	gchar *msg = g_strdup_vprintf((gchar *)format, args);
+	va_end(args);
 	gtk_label_set_text(GTK_LABEL(group->enginelabel), (const gchar *)msg);
+	g_free(msg);
 	
 	if(gtkthreadsafe) {
 		gdk_flush();	
@@ -473,6 +489,26 @@ void msync_group_update_member_status(MSyncGroup *group, OSyncMember *member, co
 	
 	gdk_flush();	
 	gdk_threads_leave ();
+}
+
+void msync_group_update_entry_status(MSyncGroup *group, gboolean gtkthreadsafe, char *format, ...)
+{
+	if(gtkthreadsafe) {
+		gdk_threads_enter();
+	}
+
+	va_list args;
+	va_start(args, format);
+	gchar *msg = g_strdup_vprintf((gchar *)format, args);
+	va_end(args);
+	gtk_label_set_text(GTK_LABEL(group->entrylabel), (const gchar *)msg);
+	gtk_label_set_use_markup(GTK_LABEL(group->entrylabel), TRUE);
+	g_free(msg);
+	
+	if(gtkthreadsafe) {
+		gdk_flush();	
+		gdk_threads_leave ();
+	}
 }
 
 void msync_group_set_sensitive(MSyncGroup *group, gboolean gtkthreadsafe, gboolean sensitive)
@@ -502,7 +538,7 @@ void msync_group_update_widget(MSyncGroup *group)
 		group->memberstatuslabel = NULL;
 	}
   	gchar* tmp = g_strdup_printf("<span weight=\"bold\" size=\"larger\">Group: %s</span>", osync_group_get_name(group->group));
-  	gtk_label_set_markup(GTK_LABEL(group->label), tmp);
+  	gtk_label_set_markup(GTK_LABEL(group->grouplabel), tmp);
   	g_free(tmp);
 	
 	int i;
@@ -525,7 +561,7 @@ void msync_group_update_widget(MSyncGroup *group)
 		GtkWidget* label9 = gtk_label_new (osync_member_get_pluginname(member));
 		gtk_widget_show (label9);
 		gtk_box_pack_start (GTK_BOX (hbox6), label9, FALSE, FALSE, 0);
-		gtk_widget_set_size_request (label9, 200, -1);
+		gtk_widget_set_size_request (label9, 175, -1);
 		gtk_misc_set_alignment (GTK_MISC (label9), 0, 0.5);
 		
 		GtkWidget* label15 = gtk_label_new ("Ready");
@@ -544,7 +580,7 @@ GtkWidget *msync_group_create_widget(MSyncGroup *group)
   GtkWidget *hbox5;
   GtkWidget *image4;
   GtkWidget *label7;
-  GtkWidget *vbox5;
+  GtkWidget *hbox;
   GtkWidget *hbox8;
   GtkWidget *hbuttonbox2;
   GtkWidget *button3;
@@ -565,24 +601,32 @@ GtkWidget *msync_group_create_widget(MSyncGroup *group)
 
 /*****/  
   label7 = gtk_label_new ("<span weight=\"bold\" size=\"larger\">Group: Mockup</span>");
-  group->label = label7;
+  group->grouplabel = label7;
   gtk_widget_show (label7);
   gtk_box_pack_start (GTK_BOX (hbox5), label7, FALSE, FALSE, 0);
   gtk_label_set_use_markup (GTK_LABEL (label7), TRUE);
   gtk_misc_set_alignment (GTK_MISC (label7), 0, 0.5);
 
-  vbox5 = gtk_vbox_new (FALSE, 0);
-  group->vbox = vbox5;
-  gtk_widget_show (vbox5);
-  gtk_box_pack_start (GTK_BOX (vbox4), vbox5, TRUE, TRUE, 0);
+  group->vbox = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (group->vbox);
+  gtk_box_pack_start (GTK_BOX (vbox4), group->vbox, TRUE, TRUE, 0);
 
 /****/
 	msync_group_update_widget(group);
 /****/
 
-  group->enginelabel = (GtkWidget *)gtk_label_new("");
-  gtk_widget_show (group->enginelabel);
-  gtk_box_pack_start (GTK_BOX (vbox4), group->enginelabel, TRUE, TRUE, 0);
+  hbox = gtk_vbox_new(FALSE, 0);
+  gtk_widget_show (hbox);
+  gtk_box_pack_start (GTK_BOX (vbox4), hbox, TRUE, TRUE, 0);
+
+  group->entrylabel = gtk_label_new("");
+  gtk_widget_show(group->entrylabel);
+  gtk_box_pack_start (GTK_BOX (hbox), group->entrylabel, TRUE, TRUE, 0);
+  gtk_misc_set_alignment (GTK_MISC (group->entrylabel), 0, 0.5);
+
+  group->enginelabel = gtk_label_new("");
+  gtk_widget_show(group->enginelabel);
+  gtk_box_pack_start (GTK_BOX (hbox), group->enginelabel, TRUE, TRUE, 0);
   gtk_misc_set_alignment (GTK_MISC (group->enginelabel), 0, 0.5);
   
   hbox8 = gtk_hbox_new (FALSE, 10);

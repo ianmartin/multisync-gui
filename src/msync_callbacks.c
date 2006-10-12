@@ -14,8 +14,11 @@ void on_newgroupbuttonapply_clicked(GtkButton *button, gpointer user_data)
 	g_assert(user_data);
 	MSyncEnv* env = (MSyncEnv*)user_data;
 	
-	//there is also a response event so we have not to hide the dialog */
+	//-there is also a response event so we have not to hide the dialog */
+	//+since we can not set require of gtk to 2.10 we close the window with the button
+	//+the window frame close button is useless
 	msync_env_newgroupdialog_add_group(env, (char *)gtk_entry_get_text(GTK_ENTRY(env->newgroupentry)));
+	gtk_widget_hide(env->editgroupdialog);
 }
 
 void on_editgroupclosebutton_clicked(GtkButton* button, gpointer user_data)

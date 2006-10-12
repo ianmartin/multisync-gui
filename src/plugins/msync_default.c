@@ -5,7 +5,7 @@ GtkWidget* msync_defaultplugin_create_widget(void) {
   return textview;
 }
 
-void msync_defaultplugin_set_config(MSyncPlugin* plugin, const char *config)
+void msync_defaultplugin_set_config(MSyncPlugin* plugin, OSyncMember *member, const char *config)
 {
 	gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(plugin->widget)), (const gchar *)config, -1);
 }
