@@ -170,7 +170,7 @@ void msync_evo2sync_set_config(MSyncPlugin* plugin, OSyncMember *member, const c
 					&error);
 
 	combo_box_fill (member,
-					"evo2_list_todos",
+					"evo2_list_tasks",
 					"No Todo",
 					curtodouri,
 					((MSyncEvo2Sync *)plugin->_private)->todocombobox,
