@@ -840,4 +840,12 @@ void msync_group_create_syncronizegroupconflictdialog(MSyncGroup *group)
   //gtk_window_set_deletable(GTK_WINDOW(syncronizegroupconflictdialog), FALSE);
   g_signal_connect(G_OBJECT(group->conflictdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
   g_signal_connect(G_OBJECT(group->conflictdialog), "response", G_CALLBACK(gtk_true), NULL);
+  
+	GError **gerror = NULL;
+	GdkPixbuf *pixbuf = NULL;
+	pixbuf = gdk_pixbuf_new_from_file(MULTISYNC_ICON, gerror);
+  	if(pixbuf) {
+		gtk_window_set_icon (GTK_WINDOW (group->conflictdialog), pixbuf);
+		gdk_pixbuf_unref (pixbuf);
+    }
 }

@@ -10,9 +10,14 @@
 #include <libxml/parser.h>
 #include <opensync/opensync.h>
 #include <osengine/engine.h>
+
 #ifndef MULTISYNC_GLADE
 #define MULTISYNC_GLADE "multisync.glade"
 #endif
+#ifndef MULTISYNC_ICON
+#define MULTISYNC_ICON "../misc/multisync.png"
+#endif
+
 
 typedef struct MSyncEnv MSyncEnv;
 typedef struct MSyncGroup MSyncGroup;

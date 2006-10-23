@@ -18,6 +18,15 @@ void msync_error_message(GtkWindow* window, gboolean threadsafe, char *format, .
                                          GTK_STOCK_OK,
                                          GTK_RESPONSE_NONE,
                                          NULL);
+	
+	GError **gerror = NULL;
+	GdkPixbuf *pixbuf = NULL;
+	pixbuf = gdk_pixbuf_new_from_file(MULTISYNC_ICON, gerror);
+  	if(pixbuf) {
+		gtk_window_set_icon (GTK_WINDOW (dialog), pixbuf);
+		gdk_pixbuf_unref (pixbuf);
+    }
+	
 	hbox = gtk_hbox_new (FALSE, 10);
 	gtk_widget_show (hbox);
 	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), hbox, TRUE, TRUE, 10);
