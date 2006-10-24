@@ -48,9 +48,12 @@ def configure(conf):
 	if not conf.check_pkg('osengine-1.0', vnum='0.19', destvar='OPENSYNCENGINE'):
 		print "you need opensync http://www.opensync.org/ (libopensync0-dev)"
 		sys.exit(1)
+	conf.env['PREFIX'] = os.path.abspath(conf.env['PREFIX'])
 	if not Params.g_options.os_develop_mode :
-		conf.add_define('MULTISYNC_DATA', os.path.join(conf.env['PREFIX'], 'share/multisync-qad'))
-		conf.add_define('MULTISYNC_ICON_DIR', os.path.join(conf.env['PREFIX'], 'share/pixmaps/multisync-qad'))
+		conf.env['MULTISYNC_DATA'] = os.path.join(conf.env['PREFIX'], 'share/multisync-qad')
+		conf.env['MULTISYNC_ICON_DIR'] = os.path.join(conf.env['PREFIX'], 'share/pixmaps/multisync-qad')
+		conf.add_define('MULTISYNC_GLADE', os.path.join(conf.env['MULTISYNC_DATA'], 'multisync-qad.glade'))
+		conf.add_define('MULTISYNC_ICON', os.path.join(conf.env['MULTISYNC_ICON_DIR'], 'multisync.png'))
 	
 	#Set project global include path
 	conf.env['CXXFLAGS_GLOBAL_PATH'] = '-I%s' % os.getcwd()

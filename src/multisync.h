@@ -11,12 +11,17 @@
 #include <opensync/opensync.h>
 #include <osengine/engine.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /*HAVE_CONFIG_H*/
+
 #ifndef MULTISYNC_GLADE
 #define MULTISYNC_GLADE "multisync.glade"
-#endif
+#endif /*MULTISYNC_GLADE*/
+
 #ifndef MULTISYNC_ICON
 #define MULTISYNC_ICON "../misc/multisync.png"
-#endif
+#endif /*MULTISYNC_ICON*/
 
 
 typedef struct MSyncEnv MSyncEnv;
