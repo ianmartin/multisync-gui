@@ -23,6 +23,13 @@
 #define MULTISYNC_ICON "../misc/multisync.png"
 #endif /*MULTISYNC_ICON*/
 
+#ifndef MULTISYNC_LEGACY
+#define MULTISYNC_LEGACY
+#endif
+
+#ifndef MULTISYNC_LEGACY_FILTERFILE
+#define MULTISYNC_LEGACY_FILTERFILE "filter.conf"
+#endif
 
 typedef struct MSyncEnv MSyncEnv;
 typedef struct MSyncGroup MSyncGroup;

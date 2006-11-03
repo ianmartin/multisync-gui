@@ -62,6 +62,35 @@ void msync_group_syncronize2(MSyncGroup *group)
 	group->entries_reveived = 0;
 	group->entries_sended = 0;
 	
+	
+	#ifdef MULTISYNC_LEGACY
+	char* filename;
+	xmlDocPtr doc;
+	GList* iter;
+	for(iter = group->msyncenv->editgroupsettingsfilter; iter != NULL; iter = g_list_next(iter))
+		osync_group_set_objtype_enabled(group->group, (char*)gtk_button_get_label(GTK_BUTTON(iter->data)), TRUE);
+			
+	filename = g_strdup_printf("%s/%s", osync_group_get_configdir(group->group), MULTISYNC_LEGACY_FILTERFILE);
+	doc = xmlReadFile(filename, NULL, 0);
+    if (doc != NULL) {
+   	    xmlNodePtr root = xmlDocGetRootElement(doc);
+		xmlNode *cur = root->children;
+		
+		for (cur = root->children; cur; cur = cur->next) {
+        	if (cur->type == XML_ELEMENT_NODE) {
+            	for(iter = group->msyncenv->editgroupsettingsfilter; iter != NULL; iter = g_list_next(iter)) {
+            		if(!strcmp((char*)cur->name, (char*)gtk_button_get_label(GTK_BUTTON(iter->data))))
+            			osync_group_set_objtype_enabled(group->group, (char*)gtk_button_get_label(GTK_BUTTON(iter->data)), FALSE);		
+            	}
+        	}
+    	}
+    	
+		xmlFreeDoc(doc);	
+   	}
+    g_free(filename);
+	#endif
+	
+	
 	group->engine = osengine_new(group->group, &error);
 	if (!group->engine) {
 		msync_error_message(GTK_WINDOW(group->msyncenv->mainwindow), TRUE, "Error while creating syncengine: %s\n", osync_error_print(&error));

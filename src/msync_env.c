@@ -74,6 +74,31 @@ int msync_env_init(MSyncEnv* env)
 	GtkTreeSelection* treeselection = gtk_tree_view_get_selection(GTK_TREE_VIEW(env->editgrouptreeview));
 	g_signal_connect(G_OBJECT(treeselection), "changed", G_CALLBACK(on_editgrouptreeview_change), env);
 
+	#ifdef MULTISYNC_LEGACY
+	int i;
+	OSyncFormatEnv *fenv = osync_conv_env_new(env->osyncenv);
+	if (!fenv) {
+		fprintf(stderr, "Unable to load format environment: %s\n", osync_error_print(&error));
+		exit(0);
+	}
+	
+	//GtkWidget* label = gtk_label_new ("<span weight=\"bold\">Disable syncing of objtype:</span>");
+	GtkWidget* label = gtk_label_new ("<span>Disable syncing of objtype:</span>");
+  	gtk_widget_show (label);
+	gtk_box_pack_start (GTK_BOX (env->editgroupsettings), label, FALSE, FALSE, 10);
+	gtk_label_set_use_markup (GTK_LABEL (label), TRUE);
+	gtk_misc_set_alignment (GTK_MISC (label), 0, 0.5);
+		
+	for (i = 0; i < osync_conv_num_objtypes(fenv); i++) {
+		OSyncObjType *type = osync_conv_nth_objtype(fenv, i);
+		GtkWidget* checkbutton = gtk_check_button_new_with_label((gchar*)osync_objtype_get_name(type));
+		gtk_widget_show (checkbutton);
+  		gtk_box_pack_start (GTK_BOX (env->editgroupsettings), checkbutton, FALSE, FALSE, 0);
+  		GTK_WIDGET_UNSET_FLAGS (checkbutton, GTK_CAN_FOCUS);
+  		env->editgroupsettingsfilter = g_list_prepend(env->editgroupsettingsfilter, checkbutton);
+	}
+	#endif
+	
 	msync_env_load_groups(env);
 	msync_env_load_plugins(env);
 	return TRUE;
@@ -240,6 +265,31 @@ void msync_env_editgroupdialog_save_settings(MSyncEnv *env, MSyncGroup* group)
 	
 	/* save group settings */
 	if(!env->curmember) {
+	
+		#ifdef MULTISYNC_LEGACY
+		xmlDocPtr doc;
+		char* filename;
+		char* buffer;
+		int size;
+		GList* iter;
+		doc = xmlNewDoc((xmlChar*)"1.0");
+		doc->children = xmlNewDocNode(doc, NULL, (xmlChar*)"filter", NULL);
+		
+		for(iter = env->editgroupsettingsfilter; iter != NULL; iter = g_list_next(iter))
+		{
+			if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(iter->data)))
+				xmlNewTextChild(doc->children, NULL, (xmlChar*)gtk_button_get_label(GTK_BUTTON(iter->data)), NULL);
+		}
+		xmlDocDumpFormatMemory(doc, (xmlChar**)&buffer, &size, 1);
+		xmlFree(doc);
+		filename = g_strdup_printf("%s/%s", osync_group_get_configdir(group->group), MULTISYNC_LEGACY_FILTERFILE);
+		if (!osync_file_write(filename, buffer, size, 0600, &error)) {
+			msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
+			osync_error_free(&error);
+		}
+		g_free(filename);
+		#endif
+		
 		char *tmp = (char *) gtk_entry_get_text(GTK_ENTRY(env->editgroupsettingsgroupnameentry));
 		if(strcmp(osync_group_get_name(group->group), tmp) != 0)
 		{
@@ -291,6 +341,38 @@ void msync_env_editgroupdialog_show_extended(MSyncEnv *env, OSyncMember* member)
 		gtk_container_add(GTK_CONTAINER(env->editgroupplugincontainer), env->editgroupsettings);
 		gtk_widget_show(env->editgroupsettings);
 		gtk_entry_set_text(GTK_ENTRY(env->editgroupsettingsgroupnameentry), (const gchar *)osync_group_get_name(env->curgroup->group));
+		
+		#ifdef MULTISYNC_LEGACY
+		char* filename;
+		xmlDocPtr doc;
+		GList* iter;
+		for(iter = env->editgroupsettingsfilter; iter != NULL; iter = g_list_next(iter))
+			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(iter->data), FALSE);
+			
+		filename = g_strdup_printf("%s/%s", osync_group_get_configdir(env->curgroup->group), MULTISYNC_LEGACY_FILTERFILE);
+		doc = xmlReadFile(filename, NULL, 0);
+	    if (doc == NULL) {
+    	    //msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Could not parse file %s.\n", filename);
+			g_free(filename);
+			return;
+    	}
+    	g_free(filename);
+		
+		xmlNodePtr root = xmlDocGetRootElement(doc);
+		xmlNode *cur = root->children;
+		
+		for (cur = root->children; cur; cur = cur->next) {
+        	if (cur->type == XML_ELEMENT_NODE) {
+            	for(iter = env->editgroupsettingsfilter; iter != NULL; iter = g_list_next(iter)) {
+            		if(!strcmp((char*)cur->name, (char*)gtk_button_get_label(GTK_BUTTON(iter->data))))
+            			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(iter->data), TRUE);		
+            	}
+        	}
+    	}
+	
+    	xmlFreeDoc(doc);
+		#endif
+		
 	}else{
 		OSyncError* error = NULL;
 		char *data;

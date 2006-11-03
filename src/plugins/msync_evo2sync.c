@@ -205,5 +205,6 @@ const char* msync_evo2sync_get_config(MSyncPlugin* plugin)
 	combo_box_empty(((MSyncEvo2Sync *)plugin->_private)->todocombobox, &(((MSyncEvo2Sync *)plugin->_private)->curtodolist));
 	
 	xmlDocDumpFormatMemoryEnc(doc, (xmlChar **)&config, &size, NULL, 1);
+	xmlFree(doc);
 	return config;
 }
