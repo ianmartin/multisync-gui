@@ -548,7 +548,7 @@ void msync_group_update_entry_status(MSyncGroup *group, gboolean gtkthreadsafe, 
 
 void msync_group_update_last_synchronization_status(MSyncGroup *group, gboolean gtkthreadsafe)
 {
-	char data[200];
+	char data[150];
 	int slen;
 	
 	time_t timep = osync_group_get_last_synchronization(group->group);

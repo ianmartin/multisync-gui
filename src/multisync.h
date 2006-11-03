@@ -25,11 +25,11 @@
 
 #ifndef MULTISYNC_LEGACY
 #define MULTISYNC_LEGACY
-#endif
+#endif /*MULTISYNC_LEGACY*/
 
 #ifndef MULTISYNC_LEGACY_FILTERFILE
 #define MULTISYNC_LEGACY_FILTERFILE "filter.conf"
-#endif
+#endif /*MULTISYNC_LEGACY_FILTERFILE*/
 
 typedef struct MSyncEnv MSyncEnv;
 typedef struct MSyncGroup MSyncGroup;
