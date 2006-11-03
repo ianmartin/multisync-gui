@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Multisync-qad
+Comment=Synchronization program for personal information such as calendars, addressbooks etc.
+Comment[de]=Synchronisation von Organizern, PIMs und Mobiltelefonen
+Exec=@PREFIX@/bin/multisync-qad
+Terminal=false
+Type=Application
+Icon=@MULTISYNC_ICON_DIR@/multisync.png
+StartupWMClass=multisync
+X-Desktop-File-Install-Version=0.3
+Categories=Application;Utility;X-Red-Hat-Base;
