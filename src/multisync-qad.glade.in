@@ -336,7 +336,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.<
     <property name="authors">Daniel Friedrich &lt;daniel.friedrich@gmail.com&gt;
 Armin Bauer &lt;armin.bauer@desscon.com&gt;
 
-the old replaced multisync was from:
+the legacy multisync was from:
 Bo Lincoln &lt;lincoln@lysator.liu.se&gt;
 Tom Foottit &lt;tfoottit@bridgewatersystems.com&gt;
 Contributions by (among others)
