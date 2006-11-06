@@ -5,7 +5,7 @@
 import os, sys
 
 # the following two variables are used by the target "waf dist"
-VERSION='0.91.00'
+VERSION='0.91.0'
 APPNAME='multisync-gui'
 
 # these variables are mandatory ('/' are converted automatically)
@@ -40,6 +40,7 @@ def configure(conf):
 	pkgconf = conf.create_pkgconfig_configurator()
 	pkgconf.uselib = 'OPENSYNC'
 	pkgconf.name = 'opensync-1.0'
+	pkgconf.version = '0.20'
 	pkgconf.variables = "configdir plugindir formatsdir"
 	if not pkgconf.run():
 		print "you need opensync http://www.opensync.org/ (libopensync0-dev)"
