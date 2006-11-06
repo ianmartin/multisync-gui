@@ -5,7 +5,7 @@
 import os, sys
 
 # the following two variables are used by the target "waf dist"
-VERSION='0.90.00'
+VERSION='0.91.00'
 APPNAME='multisync-gui'
 
 # these variables are mandatory ('/' are converted automatically)
