@@ -3,8 +3,8 @@
 def build(bld):
 	import Common
 	obj_rep = bld.create_obj('subst', 'uh')
-	obj_rep.source = 'multisync-qad.desktop.in'
+	obj_rep.source = 'multisync-gui.desktop.in'
 	obj_rep.target = 'multisync-qad.desktop'
-	Common.install_files('PREFIX', 'share/pixmaps/multisync-qad/', 'multisync.png')
-	Common.install_files('PREFIX', 'share/applications/', 'multisync-qad.desktop')
+	Common.install_files('PREFIX', 'share/pixmaps/multisync-gui/', 'multisync.png')
+	Common.install_files('PREFIX', 'share/applications/', 'multisync-gui.desktop')
 

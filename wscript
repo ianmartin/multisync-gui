@@ -5,8 +5,8 @@
 import os, sys
 
 # the following two variables are used by the target "waf dist"
-VERSION='0.0.1'
-APPNAME='multisync-qad'
+VERSION='0.91'
+APPNAME='multisync-gui'
 
 # these variables are mandatory ('/' are converted automatically)
 srcdir = '.'
@@ -50,9 +50,9 @@ def configure(conf):
 		sys.exit(1)
 	conf.env['PREFIX'] = os.path.abspath(conf.env['PREFIX'])
 	if not Params.g_options.os_develop_mode :
-		conf.env['MULTISYNC_DATA'] = os.path.join(conf.env['PREFIX'], 'share/multisync-qad')
-		conf.env['MULTISYNC_ICON_DIR'] = os.path.join(conf.env['PREFIX'], 'share/pixmaps/multisync-qad')
-		conf.add_define('MULTISYNC_GLADE', os.path.join(conf.env['MULTISYNC_DATA'], 'multisync-qad.glade'))
+		conf.env['MULTISYNC_DATA'] = os.path.join(conf.env['PREFIX'], 'share/multisync-gui')
+		conf.env['MULTISYNC_ICON_DIR'] = os.path.join(conf.env['PREFIX'], 'share/pixmaps/multisync-gui')
+		conf.add_define('MULTISYNC_GLADE', os.path.join(conf.env['MULTISYNC_DATA'], 'multisync-gui.glade'))
 		conf.add_define('MULTISYNC_ICON', os.path.join(conf.env['MULTISYNC_ICON_DIR'], 'multisync.png'))
 	
 	#Set project global include path
