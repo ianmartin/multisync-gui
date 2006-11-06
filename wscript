@@ -45,7 +45,7 @@ def configure(conf):
 		print "you need opensync http://www.opensync.org/ (libopensync0-dev)"
 		sys.exit(1)
 	
-	if not conf.check_pkg('osengine-1.0', vnum='0.19', destvar='OPENSYNCENGINE'):
+	if not conf.check_pkg('osengine-1.0', vnum='0.20', destvar='OPENSYNCENGINE'):
 		print "you need opensync http://www.opensync.org/ (libopensync0-dev)"
 		sys.exit(1)
 	conf.env['PREFIX'] = os.path.abspath(conf.env['PREFIX'])
