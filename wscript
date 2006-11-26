@@ -29,10 +29,10 @@ def configure(conf):
 		print "you need libxml-2.0 (libxml2-dev)"
 		sys.exit(1)
 	    
-	if not conf.check_pkg('gtk+-2.0',            destvar='GTK',      vnum='2.6.0'):
+	if not conf.check_pkg('gtk+-2.0 gthread-2.0', destvar='GTK',      vnum='2.6.0'):
 		print "you need libgtk-2.0-dev"
 		sys.exit(1)
-		
+
 	if not conf.check_pkg('libglade-2.0',        destvar='GLADE',    vnum='2.0.1'):
 		print "you need libglade-2.0-dev"
 		sys.exit(1)
