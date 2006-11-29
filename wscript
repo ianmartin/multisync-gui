@@ -58,7 +58,8 @@ def configure(conf):
 	
 	#Set project global include path
 	conf.env['CXXFLAGS_GLOBAL_PATH'] = '-I%s' % os.getcwd()
-	
+	if 'CCFLAGS' in os.environ :
+		conf.env['CCFLAGS'] = os.environ['CCFLAGS']
 	# write a config.h
 	conf.write_config_header('config.h')
 
