@@ -2,7 +2,10 @@
 #define MSYNC_ENV_H_
 
 struct MSyncEnv {
-	OSyncEnv*  osyncenv;
+	//OSyncEnv*  osyncenv;
+	OSyncGroupEnv *osync_group_env;
+	OSyncFormatEnv *osync_format_env;
+	OSyncPluginEnv *osync_plugin_env;
 	GladeXML*  gladexml;
 	GtkWidget* mainwindow;
 	GtkWidget* groupcontainer;

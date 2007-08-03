@@ -53,14 +53,14 @@ void msync_error_message(GtkWindow* window, gboolean threadsafe, char *format, .
 	}
 }
 
-const char *OSyncChangeType2String(OSyncChangeType c)
+const char *OSyncChangeType2String(OSyncChangeType changetype)
 {
-	switch (c) {
-		case CHANGE_ADDED: return "ADDED";
-		case CHANGE_UNMODIFIED: return "UNMODIFIED";
-		case CHANGE_DELETED: return "DELETED";
-		case CHANGE_MODIFIED: return "MODIFIED";
-		default:
-		case CHANGE_UNKNOWN: return "?";
+	switch (changetype) {
+		case OSYNC_CHANGE_TYPE_ADDED: return "ADDED";
+		case OSYNC_CHANGE_TYPE_UNMODIFIED: return "UNMODIFIED";
+		case OSYNC_CHANGE_TYPE_DELETED: return "DELETED";
+		case OSYNC_CHANGE_TYPE_MODIFIED: return "MODIFIED";
+		case OSYNC_CHANGE_TYPE_UNKNOWN: return "?";
 	}
+	return NULL;
 }

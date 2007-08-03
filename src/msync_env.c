@@ -4,22 +4,43 @@ int msync_env_init(MSyncEnv* env)
 {
 	OSyncError *error = NULL;
 	GtkWidget *widget;
-	char *configdir = NULL;
-	const char *load_groups = "TRUE";
-	const char *load_plugins = "TRUE";
-	const char *load_formats = "TRUE";
+	//char *configdir = NULL;
+	//const char *load_groups = "TRUE";
+	//const char *load_plugins = "TRUE";
+	//const char *load_formats = "TRUE";
 	
-	env->osyncenv = osync_env_new();
+	env->osync_group_env = osync_group_env_new(&error);
+	if (!env->osync_group_env)
+		goto error;
+		
+	env->osync_format_env = osync_format_env_new(&error);
+	if (!env->osync_format_env)
+		goto error_free_group_env;
+		
+	env->osync_plugin_env = osync_plugin_env_new(&error);
+	if (!env->osync_plugin_env)
+		goto error_free_format_env;
 	
-	if (!osync_env_initialize(env->osyncenv, &error)) {
-		osync_error_update(&error, "Unable to initialize environment: %s\n", osync_error_print(&error));
-		goto error_free_env;
-	}
+	if (!osync_group_env_load_groups(env->osync_group_env, NULL, &error))
+		goto error_free_plugin_env;
+				
+	if (!osync_format_env_load_plugins(env->osync_format_env, NULL, &error))
+		goto error_free_plugin_env;
+				
+	if (!osync_plugin_env_load(env->osync_plugin_env, NULL, &error))
+		goto error_free_plugin_env;
+	
+	//env->osyncenv = osync_env_new();
+		
+	//if (!osync_env_initialize(env->osyncenv, &error)) {
+	//	osync_error_update(&error, "Unable to initialize environment: %s\n", osync_error_print(&error));
+	//	goto error_free_env;
+	//}
 
-	osync_env_set_option(env->osyncenv, "GROUPS_DIRECTORY", configdir);
-	osync_env_set_option(env->osyncenv, "LOAD_GROUPS", load_groups);
-	osync_env_set_option(env->osyncenv, "LOAD_PLUGINS", load_plugins);
-	osync_env_set_option(env->osyncenv, "LOAD_FORMATS", load_formats);
+	//osync_env_set_option(env->osyncenv, "GROUPS_DIRECTORY", configdir);
+	//osync_env_set_option(env->osyncenv, "LOAD_GROUPS", load_groups);
+	//osync_env_set_option(env->osyncenv, "LOAD_PLUGINS", load_plugins);
+	//osync_env_set_option(env->osyncenv, "LOAD_FORMATS", load_formats);
 
 	env->plugins = NULL;
 	env->gladexml = glade_xml_new(MULTISYNC_GLADE, NULL, NULL);
@@ -74,60 +95,74 @@ int msync_env_init(MSyncEnv* env)
 	GtkTreeSelection* treeselection = gtk_tree_view_get_selection(GTK_TREE_VIEW(env->editgrouptreeview));
 	g_signal_connect(G_OBJECT(treeselection), "changed", G_CALLBACK(on_editgrouptreeview_change), env);
 
-	#ifdef MULTISYNC_LEGACY
-	int i;
-	OSyncFormatEnv *fenv = osync_conv_env_new(env->osyncenv);
-	if (!fenv) {
-		fprintf(stderr, "Unable to load format environment: %s\n", osync_error_print(&error));
-		exit(0);
-	}
+//	#ifdef MULTISYNC_LEGACY
+//	int i;
+//	OSyncFormatEnv *fenv = osync_conv_env_new(env->osyncenv);
+//	if (!fenv) {
+//		fprintf(stderr, "Unable to load format environment: %s\n", osync_error_print(&error));
+//		exit(0);
+//	}
+//	
+//	//GtkWidget* label = gtk_label_new ("<span weight=\"bold\">Disable syncing of objtype:</span>");
+//	GtkWidget* label = gtk_label_new ("<span>Disable syncing of objtype:</span>");
+//  	gtk_widget_show (label);
+//	gtk_box_pack_start (GTK_BOX (env->editgroupsettings), label, FALSE, FALSE, 10);
+//	gtk_label_set_use_markup (GTK_LABEL (label), TRUE);
+//	gtk_misc_set_alignment (GTK_MISC (label), 0, 0.5);
+//		
+//	for (i = 0; i < osync_conv_num_objtypes(fenv); i++) {
+//		OSyncObjType *type = osync_conv_nth_objtype(fenv, i);
+//		GtkWidget* checkbutton = gtk_check_button_new_with_label((gchar*)osync_objtype_get_name(type));
+//		gtk_widget_show (checkbutton);
+//  		gtk_box_pack_start (GTK_BOX (env->editgroupsettings), checkbutton, FALSE, FALSE, 0);
+//  		GTK_WIDGET_UNSET_FLAGS (checkbutton, GTK_CAN_FOCUS);
+//  		env->editgroupsettingsfilter = g_list_prepend(env->editgroupsettingsfilter, checkbutton);
+//	}
+//	#endif
 	
-	//GtkWidget* label = gtk_label_new ("<span weight=\"bold\">Disable syncing of objtype:</span>");
-	GtkWidget* label = gtk_label_new ("<span>Disable syncing of objtype:</span>");
-  	gtk_widget_show (label);
-	gtk_box_pack_start (GTK_BOX (env->editgroupsettings), label, FALSE, FALSE, 10);
-	gtk_label_set_use_markup (GTK_LABEL (label), TRUE);
-	gtk_misc_set_alignment (GTK_MISC (label), 0, 0.5);
-		
-	for (i = 0; i < osync_conv_num_objtypes(fenv); i++) {
-		OSyncObjType *type = osync_conv_nth_objtype(fenv, i);
-		GtkWidget* checkbutton = gtk_check_button_new_with_label((gchar*)osync_objtype_get_name(type));
-		gtk_widget_show (checkbutton);
-  		gtk_box_pack_start (GTK_BOX (env->editgroupsettings), checkbutton, FALSE, FALSE, 0);
-  		GTK_WIDGET_UNSET_FLAGS (checkbutton, GTK_CAN_FOCUS);
-  		env->editgroupsettingsfilter = g_list_prepend(env->editgroupsettingsfilter, checkbutton);
-	}
-	#endif
+	
+	//osync_group_env_free(env->osync_group_env);
+	//osync_format_env_free(env->osync_format_env);
+	//osync_plugin_env_free(env->osync_plugin_env);
 	
 	msync_env_load_groups(env);
 	msync_env_load_plugins(env);
 	return TRUE;
 
-error_free_env:
-	osync_env_free(env->osyncenv);
-	fprintf(stderr, "%s\n", osync_error_print(&error));
-	osync_error_free(&error);
+error_free_plugin_env:
+	osync_plugin_env_free(env->osync_plugin_env);
+error_free_format_env:
+	osync_format_env_free(env->osync_format_env);
+error_free_group_env:
+	osync_group_env_free(env->osync_group_env);
+error:
+	fprintf(stderr, "ERROR: %s\n", osync_error_print(&error));
+	osync_trace(TRACE_EXIT, "%s: %s", __func__, osync_error_print(&error));
+	osync_error_unref(&error);
 	return FALSE;
 }
 
 void msync_env_finalize(MSyncEnv* env)
 {
-	OSyncError* error;
+	//OSyncError* error;
 	
 	g_list_foreach(env->groups, (GFunc)msync_group_free, NULL);
 	
-	if (!osync_env_finalize(env->osyncenv, &error)) {
-		osync_error_update(&error, "Unable to finalize environment: %s\n", osync_error_print(&error));
-		goto error_free_env;
-	}
-	osync_env_free(env->osyncenv);
+	//if (!osync_env_finalize(env->osyncenv, &error)) {
+	//	osync_error_update(&error, "Unable to finalize environment: %s\n", osync_error_print(&error));
+	//	goto error_free_env;
+	//}
+	//osync_env_free(env->osyncenv);
+	osync_group_env_free(env->osync_group_env);
+	osync_format_env_free(env->osync_format_env);
+	osync_plugin_env_free(env->osync_plugin_env);
 	return;
 	
-error_free_env:
-	osync_env_free(env->osyncenv);
-	fprintf(stderr, "%s\n", osync_error_print(&error));
-	osync_error_free(&error);
-	return;
+//error_free_env:
+//	osync_env_free(env->osyncenv);
+//	fprintf(stderr, "%s\n", osync_error_print(&error));
+//	osync_error_free(&error);
+//	return;
 }
 
 void msync_env_load_plugins(MSyncEnv* env)
@@ -139,21 +174,25 @@ void msync_env_load_plugins(MSyncEnv* env)
 							msync_defaultplugin_set_config,
 							NULL);
 	
-	MSyncEvo2Sync* evo2sync = g_malloc0(sizeof(MSyncEvo2Sync));
-	GtkWidget* widget = msync_evo2sync_create_widget(evo2sync);
-	msync_plugin_register ( &(env->plugins),
-							"evo2-sync",
-							widget,
-							msync_evo2sync_get_config,
-							msync_evo2sync_set_config,
-							evo2sync);
+//	MSyncEvo2Sync* evo2sync = g_malloc0(sizeof(MSyncEvo2Sync));
+//	GtkWidget* widget = msync_evo2sync_create_widget(evo2sync);
+//	msync_plugin_register ( &(env->plugins),
+//							"evo2-sync",
+//							widget,
+//							msync_evo2sync_get_config,
+//							msync_evo2sync_set_config,
+//							evo2sync);
 }
 
 void msync_env_load_groups(MSyncEnv *env)
 {
 	int i;
-	for (i = 0; i < osync_env_num_groups(env->osyncenv); i++) {
-		OSyncGroup* group = osync_env_nth_group(env->osyncenv, i);
+	//for (i = 0; i < osync_env_num_groups(env->osyncenv); i++) {
+	//	OSyncGroup* group = osync_env_nth_group(env->osyncenv, i);
+	//	msync_group_new(env, group);
+	//}
+	for (i = 0; i < osync_group_env_num_groups(env->osync_group_env); i++) {
+		OSyncGroup* group = osync_group_env_nth_group(env->osync_group_env, i);
 		msync_group_new(env, group);
 	}
 }
@@ -174,15 +213,35 @@ void msync_env_newgroupdialog_add_group(MSyncEnv *env, char* groupname)
 		return;		
 	}
 	
-	group = osync_group_new(env->osyncenv);
+	//group = osync_group_new(env->osyncenv);
+	//osync_group_set_name(group, groupname);
+	//if (!osync_group_save(group, &error)) {
+	//	msync_error_message(GTK_WINDOW(env->mainwindow), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
+	//	osync_error_free(&error);
+	//}
+	//msync_group_new(env, group);
+	
+	group = osync_group_new(&error);
+	if (!group)
+		goto error;
+	
 	osync_group_set_name(group, groupname);
-
-	if (!osync_group_save(group, &error)) {
-		msync_error_message(GTK_WINDOW(env->mainwindow), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
-		osync_error_free(&error);
-	}
+	if (!osync_group_env_add_group(env->osync_group_env, group, &error))
+		goto error_and_free;
+	
+	if (!osync_group_save(group, &error))
+		goto error_and_free;
 	
 	msync_group_new(env, group);
+	osync_group_unref(group);
+	return;
+
+	error_and_free:
+		osync_group_unref(group);
+	error:
+		msync_error_message(GTK_WINDOW(env->mainwindow), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
+		osync_error_unref(&error);
+	return;
 }
 
 void msync_evn_editgroupdialog_show(MSyncEnv *env, MSyncGroup* group)
@@ -285,7 +344,8 @@ void msync_env_editgroupdialog_save_settings(MSyncEnv *env, MSyncGroup* group)
 		filename = g_strdup_printf("%s/%s", osync_group_get_configdir(group->group), MULTISYNC_LEGACY_FILTERFILE);
 		if (!osync_file_write(filename, buffer, size, 0600, &error)) {
 			msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
-			osync_error_free(&error);
+			//osync_error_free(&error);
+			osync_error_unref(&error);
 		}
 		g_free(filename);
 		#endif
@@ -297,7 +357,8 @@ void msync_env_editgroupdialog_save_settings(MSyncEnv *env, MSyncGroup* group)
 		
 			if (!osync_group_save(group->group, &error)) {
 				msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
-				osync_error_free(&error);
+				//osync_error_free(&error);
+				osync_error_unref(&error);
 			}
 			msync_env_editgroupdialog_update_treeview(env);
 		}
@@ -308,18 +369,21 @@ void msync_env_editgroupdialog_save_settings(MSyncEnv *env, MSyncGroup* group)
 			plugin = msync_plugin_find(env->plugins, "default");
 		
 		const char* data = plugin->msync_plugin_get_config(plugin);
-		osync_member_set_config(env->curmember, data, strlen(data));
+		//osync_member_set_config(env->curmember, data, strlen(data));
+		osync_member_set_config(env->curmember, data);
 		free((void *)data);
 
 		if (!osync_group_save(group->group, &error)) {
 			msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
-			osync_error_free(&error);
+			//osync_error_free(&error);
+			osync_error_unref(&error);
 		}
 	}
 }
 
 void msync_env_editgroupdialog_show_extended(MSyncEnv *env, OSyncMember* member)
 {
+	OSyncError* error = NULL;
 	env->curmember = member;
 	
 	gchar* tmp;
@@ -374,19 +438,24 @@ void msync_env_editgroupdialog_show_extended(MSyncEnv *env, OSyncMember* member)
 		#endif
 		
 	}else{
-		OSyncError* error = NULL;
-		char *data;
-		int size;
+		const char *config = NULL;
 		MSyncPlugin* plugin;
+
 		plugin = msync_plugin_find(env->plugins, osync_member_get_pluginname(member));
 		if(!plugin)
 			plugin = msync_plugin_find(env->plugins, "default");
 	
 		gtk_container_add(GTK_CONTAINER(env->editgroupplugincontainer), plugin->widget);
 		gtk_widget_show(plugin->widget);
-		osync_member_get_config_or_default(member, &data, &size, &error);
-		plugin->msync_plugin_set_config(plugin, member, data);
-	}	
+		config = osync_member_get_config_or_default(member, &error);
+		if (!config)
+			goto error;
+		plugin->msync_plugin_set_config(plugin, member, config);
+	}
+	return;
+error:
+	msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Error: %s\n", osync_error_print(&error));
+	osync_error_unref(&error);
 }
 
 void msync_env_editgroupaddmemberdialog_show(MSyncEnv *env)
@@ -419,8 +488,10 @@ void msync_env_editgroupaddmemberdialog_show(MSyncEnv *env)
 	
 	treestore = gtk_tree_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_POINTER);
 	GdkPixbuf* pixbuf = gtk_widget_render_icon(env->editgroupaddmemberdialog, "gtk-go-forward", GTK_ICON_SIZE_SMALL_TOOLBAR, NULL);
-	for (i = 0; i < osync_env_num_plugins(env->osyncenv); i++) {
-		plugin = osync_env_nth_plugin(env->osyncenv, i);
+	//for (i = 0; i < osync_env_num_plugins(env->osyncenv); i++) {
+	for (i = 0; i < osync_plugin_env_num_plugins(env->osync_plugin_env); i++) {
+		//plugin = osync_env_nth_plugin(env->osync_plugin_env, i);
+		plugin = osync_plugin_env_nth_plugin(env->osync_plugin_env, i);
 		gtk_tree_store_append(treestore, &toplevel, NULL);
 		gtk_tree_store_set (treestore, &toplevel,
 							0, pixbuf,
@@ -446,18 +517,29 @@ void msync_env_editgroupaddmemberdialog_add_member(MSyncEnv *env, OSyncPlugin* p
 	OSyncError* error = NULL;
 	OSyncMember *member = NULL;
 	
-	member = osync_member_new(env->curgroup->group);
-	if (!osync_member_instance_plugin(member, osync_plugin_get_name(plugin), &error)) {
-		msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to instance plugin with name %s: %s\n", osync_plugin_get_name(plugin), osync_error_print(&error));
-		osync_error_free(&error);
+	//member = osync_member_new(env->curgroup->group);
+	member = osync_member_new(&error);
+	if (!member) {
+		msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to create member for plugin %s: %s\n", osync_plugin_get_name(plugin), osync_error_print(&error));
+		osync_error_unref(&error);
 		return;
 	}
+	
+	osync_group_add_member(env->curgroup->group, member);
+	osync_member_set_pluginname(member, osync_plugin_get_name(plugin));
+	
+	//if (!osync_member_instance_plugin(member, osync_plugin_get_name(plugin), &error)) {
+	//	msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to instance plugin with name %s: %s\n", osync_plugin_get_name(plugin), osync_error_print(&error));
+	//	osync_error_free(&error);
+	//	return;
+	//}
 		
 	if (!osync_member_save(member, &error)) {
 		msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save member: %s\n", osync_error_print(&error));
-		osync_error_free(&error);
+		osync_error_unref(&error);
 	}
 	msync_env_editgroupdialog_update_treeview(env);
+	osync_member_unref(member);
 }
 
 void msync_evn_aboutdialog_show(MSyncEnv *env)

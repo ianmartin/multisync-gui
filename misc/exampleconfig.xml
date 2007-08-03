@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<element type="plugin">
+		<name value="Address" />
+		<description value="bla bla bla" />
+		<function value="evo2_list_addressbooks" />
+		<default value="" />
+	</element>
+	<element type="boolean">
+		<name value="Recursive" />
+		<description value="bla bla bla" />
+		<default value="FALSE" />
+	</element>
+	<element type="integer">
+		<name value="Port" />
+		<description value="bla bla bla" />
+		<default value="8080" />
+		<min value="0" />
+		<max value="65535" />
+	</element>
+	<element type="string">
+		<name value="Name" />
+		<description value="bla bla bla" />
+		<default value="" />
+		<min value="0" />
+		<max value="255" />
+	</element>
+	<element type="enumeration">
+		<name value="Type" />
+		<description value="bla bla bla" />
+		<default value="5" />
+		<values>
+			<enumeration value="5" />
+			<enumeration value="7" />
+		</values>
+	</element>
+</config>

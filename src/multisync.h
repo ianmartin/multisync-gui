@@ -9,7 +9,11 @@
 #include <glade/glade.h>
 #include <libxml/parser.h>
 #include <opensync/opensync.h>
-#include <osengine/engine.h>
+#include <opensync/opensync-group.h>
+#include <opensync/opensync-format.h>
+#include <opensync/opensync-plugin.h>
+#include <opensync/opensync-engine.h>
+#include <opensync/opensync-data.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -23,9 +27,9 @@
 #define MULTISYNC_ICON "../misc/multisync.png"
 #endif /*MULTISYNC_ICON*/
 
-#ifndef MULTISYNC_LEGACY
-#define MULTISYNC_LEGACY
-#endif /*MULTISYNC_LEGACY*/
+//#ifndef MULTISYNC_LEGACY
+//#define MULTISYNC_LEGACY
+//#endif /*MULTISYNC_LEGACY*/
 
 #ifndef MULTISYNC_LEGACY_FILTERFILE
 #define MULTISYNC_LEGACY_FILTERFILE "filter.conf"

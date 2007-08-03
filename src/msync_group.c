@@ -39,7 +39,7 @@ void msync_group_remove(MSyncGroup *group)
 	OSyncError *error = NULL;
 	if (!osync_group_delete(group->group, &error)) {
 		msync_error_message(GTK_WINDOW(group->msyncenv), FALSE, "Unable to delete group %s: %s\n", osync_group_get_name(group->group), osync_error_print(&error));
-		osync_error_free(&error);
+		osync_error_unref(&error);
 	}
 	msync_group_free(group);
 }
@@ -90,20 +90,24 @@ void msync_group_syncronize2(MSyncGroup *group)
     g_free(filename);
 	#endif
 	
-	
-	group->engine = osengine_new(group->group, &error);
+	group->engine = osync_engine_new(group->group, &error);
 	if (!group->engine) {
 		msync_error_message(GTK_WINDOW(group->msyncenv->mainwindow), TRUE, "Error while creating syncengine: %s\n", osync_error_print(&error));
 		goto error;
 	}
 	
-	osengine_set_enginestatus_callback(group->engine, msync_group_syncronize_enginestatus, group);
-	osengine_set_memberstatus_callback(group->engine, msync_group_syncronize_memberstatus, group);
-	osengine_set_changestatus_callback(group->engine, msync_group_syncronize_entrystatus, group);
-	osengine_set_mappingstatus_callback(group->engine, msync_group_syncronize_mappingstatus, NULL);
-	osengine_set_conflict_callback(group->engine, msync_group_syncronize_conflict, group);
+	//TODO this stuff should be stored in the group settings
+	osync_engine_set_use_merger(group->engine, FALSE);
+	osync_engine_set_use_converter(group->engine, TRUE);
 	
-	if (!osengine_init(group->engine, &error)) {
+	osync_engine_set_enginestatus_callback(group->engine, msync_group_syncronize_enginestatus, group);
+	osync_engine_set_memberstatus_callback(group->engine, msync_group_syncronize_memberstatus, group);
+	osync_engine_set_changestatus_callback(group->engine, msync_group_syncronize_entrystatus, group);
+	osync_engine_set_mappingstatus_callback(group->engine, msync_group_syncronize_mappingstatus, NULL);
+	osync_engine_set_conflict_callback(group->engine, msync_group_syncronize_conflict, group);
+	
+
+	if (!osync_engine_initialize(group->engine, &error)) {
 		msync_error_message(GTK_WINDOW(group->msyncenv->mainwindow), TRUE, "Error while initializing syncengine: %s\n", osync_error_print(&error));
 		goto error_free_engine;
 	}
@@ -121,9 +125,9 @@ void msync_group_syncronize2(MSyncGroup *group)
 	}
 	
 	if(!wait)
-		osengine_sync_and_block(group->engine, &error);
+		osync_engine_synchronize_and_block(group->engine, &error);
 	else
-		osengine_wait_sync_end(group->engine, &error);
+		osync_engine_wait_sync_end(group->engine, &error);
 		
 	if(error) {
 		msync_error_message(GTK_WINDOW(group->msyncenv->mainwindow), TRUE, "Error synchronizing: %s\n", osync_error_print(&error));
@@ -134,61 +138,65 @@ void msync_group_syncronize2(MSyncGroup *group)
 		msync_error_message(GTK_WINDOW(group->msyncenv->mainwindow), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
 		goto error_finalize;
 	}
-	osengine_finalize(group->engine);
-	osengine_free(group->engine);
+	osync_engine_finalize(group->engine, &error);
+	osync_engine_unref(group->engine);
 	group->engine = NULL;	
 	msync_group_set_sensitive(group, TRUE, TRUE);
 	return;
 
 error_finalize:
-	osengine_finalize(group->engine);
+	osync_engine_finalize(group->engine, NULL);
 error_free_engine:
-	osengine_free(group->engine);
+	osync_engine_unref(group->engine);
 	group->engine = NULL;
 error:
-	osync_error_free(&error);
+	osync_error_unref(&error);
 	msync_group_set_sensitive(group, TRUE, TRUE);
 }
 
-void msync_group_syncronize_enginestatus(OSyncEngine *engine, OSyncEngineUpdate *status, void *user_data)
+void msync_group_syncronize_enginestatus(OSyncEngineUpdate *status, void *user_data)
 {
 	g_assert(user_data);
 	MSyncGroup* group = (MSyncGroup *)user_data;
 
 	switch (status->type) {
-		case ENG_PREV_UNCLEAN:
-			printf("The previous synchronization was unclean. Slow-syncing\n");
-			msync_group_update_engine_status(group, TRUE,"The previous synchronization was unclean. Slow-syncing");
-			break;
-		case ENG_ENDPHASE_CON:
+		case OSYNC_ENGINE_EVENT_CONNECTED:
 			printf("All clients connected or error\n");
 			msync_group_update_engine_status(group, TRUE, "All clients connected or error");
 			break;
-		case ENG_END_CONFLICTS:
-			printf("All conflicts have been reported\n");
-			msync_group_update_engine_status(group, TRUE, "All conflicts have been reported");
-			break;
-		case ENG_ENDPHASE_READ:
+		case OSYNC_ENGINE_EVENT_READ:
 			printf("All clients sent changes or error\n");
 			msync_group_update_engine_status(group, TRUE, "All clients sent changes or error");
 			break;
-		case ENG_ENDPHASE_WRITE:
+		case OSYNC_ENGINE_EVENT_WRITTEN:
 			printf("All clients have written\n");
 			msync_group_update_engine_status(group, TRUE, "All clients have written");
 			break;
-		case ENG_ENDPHASE_DISCON:
+		case OSYNC_ENGINE_EVENT_DISCONNECTED:
 			printf("All clients have disconnected\n");
 			msync_group_update_engine_status(group, TRUE, "All clients have disconnected");
 			break;
-		case ENG_SYNC_SUCCESSFULL:
+		case OSYNC_ENGINE_EVENT_ERROR:
+			printf("The sync failed: %s\n", osync_error_print(&(status->error)));
+			msync_group_update_engine_status(group, TRUE, "The sync failed: %s", osync_error_print(&(status->error)));
+			msync_group_update_entry_status(group, TRUE, "");
+			break;
+		case OSYNC_ENGINE_EVENT_SUCCESSFUL:
 			printf("The sync was successful\n");
 			msync_group_update_engine_status(group, TRUE, "The sync was successful");
 			msync_group_update_entry_status(group, TRUE, "");
 			break;
-		case ENG_ERROR:
-			printf("The sync failed: %s\n", osync_error_print(&(status->error)));
-			msync_group_update_engine_status(group, TRUE, "The sync failed: %s", osync_error_print(&(status->error)));
-			msync_group_update_entry_status(group, TRUE, "");
+		case OSYNC_ENGINE_EVENT_PREV_UNCLEAN:
+			printf("The previous synchronization was unclean. Slow-syncing\n");
+			msync_group_update_engine_status(group, TRUE,"The previous synchronization was unclean. Slow-syncing");
+			break;
+		case OSYNC_ENGINE_EVENT_END_CONFLICTS:
+			printf("All conflicts have been reported\n");
+			msync_group_update_engine_status(group, TRUE, "All conflicts have been reported");
+			break;
+		case OSYNC_ENGINE_EVENT_SYNC_DONE:
+			printf("All clients reported sync done\n");
+			msync_group_update_engine_status(group, TRUE, "All clients reported sync done");
 			break;
 	}
 }
@@ -198,104 +206,98 @@ void msync_group_syncronize_memberstatus(OSyncMemberUpdate *status, void *user_d
 	g_assert(user_data);
 	MSyncGroup* group = (MSyncGroup *)user_data;
 
+	char *sink = NULL;
+	if (status->objtype == NULL) {
+		sink = g_strdup("Main sink");
+	} else {
+		sink = g_strdup_printf("%s sink", status->objtype);
+	}
+
 	switch (status->type) {
-		case MEMBER_CONNECTED:
+		case OSYNC_CLIENT_EVENT_CONNECTED:
 			msync_group_update_member_status(group, status->member, "Connected");
-			printf("Member %lli of type %s just connected\n", osync_member_get_id(status->member), osync_member_get_pluginname(status->member));
+			printf("%s of member %lli of type %s just connected\n", sink, osync_member_get_id(status->member), osync_member_get_pluginname(status->member));
 			break;
-		case MEMBER_DISCONNECTED:
+		case OSYNC_CLIENT_EVENT_DISCONNECTED:
 			msync_group_update_member_status(group, status->member, "Disconnected");
-			printf("Member %lli of type %s just disconnected\n", osync_member_get_id(status->member), osync_member_get_pluginname(status->member));
+			printf("%s of member %lli of type %s just disconnected\n", sink, osync_member_get_id(status->member), osync_member_get_pluginname(status->member));
 			break;
-		case MEMBER_SENT_CHANGES:
+		case OSYNC_CLIENT_EVENT_READ:
 			msync_group_update_member_status(group, status->member, "Sent all changes");
-			printf("Member %lli of type %s just sent all changes\n", osync_member_get_id(status->member), osync_member_get_pluginname(status->member));
+			printf("%s of member %lli of type %s just sent all changes\n", sink, osync_member_get_id(status->member), osync_member_get_pluginname(status->member));
 			break;
-		case MEMBER_COMMITTED_ALL:
+		case OSYNC_CLIENT_EVENT_WRITTEN:
 			msync_group_update_member_status(group, status->member, "Committed all changes");
-			printf("Member %lli of type %s committed all changes.\n", osync_member_get_id(status->member), osync_member_get_pluginname(status->member));
+			printf("%s of member %lli of type %s committed all changes.\n", sink, osync_member_get_id(status->member), osync_member_get_pluginname(status->member));
 			break;
-		case MEMBER_CONNECT_ERROR:
-			msync_group_update_member_status(group, status->member, "Error while connecting");
-			printf("Member %lli of type %s had an error while connecting: %s\n", osync_member_get_id(status->member), osync_member_get_pluginname(status->member), osync_error_print(&(status->error)));
+		case OSYNC_CLIENT_EVENT_SYNC_DONE:
+			msync_group_update_member_status(group, status->member, "Sync done");
+			printf("%s of member %lli of type %s reported sync done.\n", sink, osync_member_get_id(status->member), osync_member_get_pluginname(status->member));
 			break;
-		case MEMBER_GET_CHANGES_ERROR:
-			msync_group_update_member_status(group, status->member, "Error while getting changes");
-			printf("Member %lli of type %s had an error while getting changes: %s\n", osync_member_get_id(status->member), osync_member_get_pluginname(status->member), osync_error_print(&(status->error)));
+		case OSYNC_CLIENT_EVENT_DISCOVERED:
+			msync_group_update_member_status(group, status->member, "Discovered objtypes");
+			printf("%s of member %lli of type %s discovered its objtypes.\n", sink, osync_member_get_id(status->member), osync_member_get_pluginname(status->member));
 			break;
-		case MEMBER_SYNC_DONE_ERROR:
-			msync_group_update_member_status(group, status->member, "Error while calling sync done");
-			printf("Member %lli of type %s had an error while calling sync done: %s\n", osync_member_get_id(status->member), osync_member_get_pluginname(status->member), osync_error_print(&(status->error)));
-			break;
-		case MEMBER_DISCONNECT_ERROR:
-			msync_group_update_member_status(group, status->member, "Error while disconnecting");
-			printf("Member %lli of type %s had an error while disconnecting: %s\n", osync_member_get_id(status->member), osync_member_get_pluginname(status->member), osync_error_print(&(status->error)));
-			break;
-		case MEMBER_COMMITTED_ALL_ERROR:
-			msync_group_update_member_status(group, status->member, "Error while commiting changes");
-			printf("Member %lli of type %s had an error while commiting changes: %s\n", osync_member_get_id(status->member), osync_member_get_pluginname(status->member), osync_error_print(&(status->error)));
+		case OSYNC_CLIENT_EVENT_ERROR:
+			msync_group_update_member_status(group, status->member, "Error");//TODO
+			printf("%s of member %lli of type %s had an error: %s\n", sink, osync_member_get_id(status->member), osync_member_get_pluginname(status->member), osync_error_print(&(status->error)));
 			break;
 	}
+	
+	g_free(sink);
 }
 
 void msync_group_syncronize_mappingstatus(OSyncMappingUpdate *status, void *user_data)
 {
 	switch (status->type) {
-		case MAPPING_SOLVED:
-			printf("Mapping solved\n");
+		case OSYNC_MAPPING_EVENT_SOLVED:
+		//	printf("Mapping solved\n");
 			break;
-		case MAPPING_SYNCED:
-			printf("Mapping Synced\n");
-			break;
-		case MAPPING_WRITE_ERROR:
-			printf("Mapping Write Error: %s\n", osync_error_print(&(status->error)));
+		//case OSYNC_MAPPING_EVENT_WRITTEN:
+		//	printf("Mapping Synced\n");
+		//	break;
+		case OSYNC_MAPPING_EVENT_ERROR:
+			printf("Mapping Error: %s\n", osync_error_print(&(status->error)));
 			break;
 	}
 }
 
-void msync_group_syncronize_entrystatus(OSyncEngine *engine, OSyncChangeUpdate *status, void *user_data)
+void msync_group_syncronize_entrystatus(OSyncChangeUpdate *status, void *user_data)
 {
 	g_assert(user_data);
 	MSyncGroup* group = (MSyncGroup *)user_data;
 	
 	switch (status->type) {
-		case CHANGE_RECEIVED_INFO:
-			printf("Received an entry %s without data from member %i. Changetype %s\n",
-					osync_change_get_uid(status->change), status->member_id,
-					OSyncChangeType2String(osync_change_get_changetype(status->change)));
-			break;
-		case CHANGE_RECEIVED:
+		case OSYNC_CHANGE_EVENT_READ:
 			group->entries_reveived++;
 			msync_group_update_entry_status(group, TRUE, "%i entries received", group->entries_reveived);
-			printf("Received an entry %s with data of size %i from member %i. Changetype %s\n",
+			printf("Received a entry %s from member %lli (%s). Changetype %s\n",
 					osync_change_get_uid(status->change),
-					osync_change_get_datasize(status->change),
-					status->member_id,
+					osync_member_get_id(status->member),
+					osync_member_get_pluginname(status->member),
 					OSyncChangeType2String(osync_change_get_changetype(status->change)));
 			break;
-		case CHANGE_SENT:
+		case OSYNC_CHANGE_EVENT_WRITTEN:
 			group->entries_sended++;
 			msync_group_update_entry_status(group, TRUE, "%i entries sent", group->entries_sended);
-			printf("Sent an entry %s of size %i to member %i. Changetype %s\n",
+			printf("Sent a entry %s to member %lli (%s). Changetype %s\n",
 					osync_change_get_uid(status->change),
-					osync_change_get_datasize(status->change),
-					status->member_id,
+					osync_member_get_id(status->member),
+					osync_member_get_pluginname(status->member),
 					OSyncChangeType2String(osync_change_get_changetype(status->change)));
 			break;
-		case CHANGE_WRITE_ERROR:
-			printf("Error writing entry %s to member %i: %s\n",
+		case OSYNC_CHANGE_EVENT_ERROR:
+			printf("Error for entry %s and member %lli (%s): %s\n",
 					osync_change_get_uid(status->change),
-					status->member_id,
+					osync_member_get_id(status->member),
+					osync_member_get_pluginname(status->member),
 					osync_error_print(&(status->error)));
-			break;
-		case CHANGE_RECV_ERROR:
-			printf("Error reading entry %s from member %i: %s\n", osync_change_get_uid(status->change), status->member_id, osync_error_print(&(status->error)));
 			break;
 	}
 }
 
 
-void msync_group_syncronize_conflict(OSyncEngine *engine, OSyncMapping *mapping, void *user_data)
+void msync_group_syncronize_conflict(OSyncEngine *engine, OSyncMappingEngine *mapping_engine, void *user_data)
 {
 	OSyncError	*error = NULL;
 	OSyncChange *change = NULL;
@@ -317,7 +319,7 @@ void msync_group_syncronize_conflict(OSyncEngine *engine, OSyncMapping *mapping,
 	g_list_foreach(childs, (GFunc)gtk_widget_destroy, NULL);
 	g_list_free(childs);
 
-	if (osengine_mapping_ignore_supported(engine, mapping)) {
+	if (osync_mapping_engine_supports_ignore(mapping_engine)) {
 		GtkWidget* button3 = gtk_button_new_with_label ("Ignore");
 		gtk_widget_show (button3);
 		gtk_box_pack_start (GTK_BOX (group->conflictbuttons), button3, TRUE, TRUE, 0);
@@ -337,9 +339,9 @@ void msync_group_syncronize_conflict(OSyncEngine *engine, OSyncMapping *mapping,
 	g_signal_connect_swapped(G_OBJECT(button6), "clicked", G_CALLBACK(msync_group_syncronize_mapping_newer), group);
 
 	int i = 0;
-	for (i = 0; i < osengine_mapping_num_changes(mapping); i++) {
-		OSyncChange *change = osengine_mapping_nth_change(mapping, i);
-		if (osync_change_get_changetype(change) != CHANGE_UNKNOWN)
+	for (i = 0; i < osync_mapping_engine_num_changes(mapping_engine); i++) {
+		OSyncChange *change = osync_mapping_engine_nth_change(mapping_engine, i);
+		if (osync_change_get_changetype(change) != OSYNC_CONFLICT_RESOLUTION_UNKNOWN)
 		{
 		  GtkWidget* vbox7 = gtk_vbox_new (FALSE, 10);
 		  gtk_widget_show (vbox7);
@@ -348,8 +350,9 @@ void msync_group_syncronize_conflict(OSyncEngine *engine, OSyncMapping *mapping,
 		  GtkWidget* hbox8 = gtk_hbox_new (FALSE, 10);
 		  gtk_widget_show (hbox8);
 		  gtk_box_pack_start (GTK_BOX (vbox7), hbox8, FALSE, FALSE, 0);
-		
-	gchar* text = g_strdup_printf("Member: %s\nUID: %s", osync_member_get_pluginname(osync_change_get_member(change)), osync_change_get_uid(change));
+	
+	OSyncMember *member = osync_mapping_engine_change_find_member(mapping_engine, change);
+	gchar* text = g_strdup_printf("Member: %s\nUID: %s", osync_member_get_pluginname(member), osync_change_get_uid(change));
 	GtkWidget* label11 = gtk_label_new (text);
 	g_free(text);
 		  gtk_widget_show (label11);
@@ -377,9 +380,11 @@ void msync_group_syncronize_conflict(OSyncEngine *engine, OSyncMapping *mapping,
 		  gtk_widget_show (textview1);
 		  gtk_container_add (GTK_CONTAINER (viewport2), textview1);
 		  GTK_WIDGET_UNSET_FLAGS (textview1, GTK_CAN_FOCUS);
-	char* tmp = osync_change_get_printable(change);
-	gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview1)), (gchar *)tmp, -1);
-	free(tmp);
+	
+	OSyncData *data = osync_change_get_data(change);
+	char *printable = osync_data_get_printable(data);
+	gtk_text_buffer_set_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(textview1)), (gchar *)printable, -1);
+	g_free(printable);
 		}
 	}
 	gdk_flush();	
@@ -408,25 +413,29 @@ waitforuser:
 			//osengine_mapping_duplicate(group->engine, mapping);
 			break;
 		case MSYNC_RESOLUTION_IGNORE:
-			if (!osengine_mapping_ignore_conflict(group->engine, mapping, &error)) {
+			if (!osync_engine_mapping_ignore_conflict(group->engine, mapping_engine, &error)) {
 				msync_group_syncronize_conflictdialog_show(group, TRUE);
 				msync_error_message(GTK_WINDOW(group->conflictdialog), TRUE, "Conflict not ignored: %s\n", osync_error_print(&error));
-				osync_error_free(&error);
+				osync_error_unref(&error);
 				goto waitforuser;
 			}
 			break;
 		case MSYNC_RESOLUTION_NEWER:
-			if (!osengine_mapping_solve_latest(group->engine, mapping, &error)) {
+			if (!osync_engine_mapping_use_latest(group->engine, mapping_engine, &error)) {
 				msync_group_syncronize_conflictdialog_show(group, TRUE);
 				msync_error_message(GTK_WINDOW(group->conflictdialog), TRUE, "Conflict not resolved: %s\n", osync_error_print(&error));
-				osync_error_free(&error);
+				osync_error_unref(&error);
 				goto waitforuser;
 			}
 			break;
 		case MSYNC_RESOLUTION_SELECT:
-			change = osengine_mapping_nth_change(mapping, group->winningside);
+			change = osync_mapping_engine_nth_change(mapping_engine, group->winningside);
 			g_assert(change);
-			osengine_mapping_solve(group->engine, mapping, change);
+			osync_engine_mapping_solve(group->engine, mapping_engine, change, &error);
+			if(error) {
+				msync_error_message(GTK_WINDOW(group->conflictdialog), TRUE, "Conflict not resolved: %s\n", osync_error_print(&error));
+				osync_error_unref(&error);
+			}
 			break;
 		case MSYNC_RESOLUTION_UNKNOWN:
 			g_assert_not_reached();
