@@ -4,7 +4,7 @@ def build(bld):
 	import Common
 
 	# process file.pc.in -> file.pc
-	obj_rep = bld.create_obj('subst', 'uh')
+	obj_rep = bld.create_obj('subst')
 	obj_rep.source = 'multisync-gui.glade.in'
 	obj_rep.target = 'multisync-gui.glade'
 
@@ -13,7 +13,7 @@ def build(bld):
 	obj_gui.includes='.'
 	obj_gui.find_sources_in_dirs('. plugins')
 	obj_gui.defines='HAVE_CONFIG_H=1'
-	obj_gui.uselib = 'GLOBAL_PATH GLIB GTK GLADE OPENSYNC OPENSYNCENGINE'
+	obj_gui.uselib = 'GLOBAL_PATH GLIB GTK GLADE OPENSYNC'
 
 	Common.install_files('MULTISYNC_DATA', '', 'multisync-gui.glade')
 

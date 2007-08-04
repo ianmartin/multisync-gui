@@ -6,7 +6,7 @@ import os, sys
 from Params import fatal
 
 # the following two variables are used by the target "waf dist"
-VERSION='0.91.0'
+VERSION='0.92.0'
 APPNAME='multisync-gui'
 
 # these variables are mandatory ('/' are converted automatically)
@@ -62,12 +62,9 @@ def configure(conf):
 	pkgconf = conf.create_pkgconfig_configurator()
 	pkgconf.uselib = 'OPENSYNC'
 	pkgconf.name = 'opensync-1.0'
-	pkgconf.version = '0.19'
+	pkgconf.version = '0.31'
 	pkgconf.variables = "configdir plugindir formatsdir"
 	if not pkgconf.run():
-		fatal("you need opensync http://www.opensync.org/ (libopensync0-dev)")
-
-	if not conf.check_pkg('osengine-1.0', vnum='0.19', destvar='OPENSYNCENGINE'):
 		fatal("you need opensync http://www.opensync.org/ (libopensync0-dev)")
 
 	if not P.os_develop_mode :
