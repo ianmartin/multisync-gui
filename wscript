@@ -112,14 +112,4 @@ def set_options(opt):
 	os_compiler_opts.add_option('--develop-mode', action='store_true', default=False,
 		help='Should  developer mode be enabled? \
 		This way the program don`t need to be installed to be runned', dest='os_develop_mode')
-	opt_helper(os_compiler_opts, "rpath", True, 'Should rpath be used?')
-	ig_opt = opt.add_option_group("options to ignore")
-	ig_opt.add_option('--build', type='string', help='not needed automake option', dest='ignore')
-	ig_opt.add_option('--includedir', type='string', help='not needed automake option', dest='ignore')
-	ig_opt.add_option('--mandir', type='string', help='not needed automake option', dest='ignore')
-	ig_opt.add_option('--infodir', type='string', help='not needed automake option', dest='ignore')
-	ig_opt.add_option('--sysconfdir', type='string', help='not needed automake option', dest='ignore')
-	ig_opt.add_option('--localstatedir', type='string', help='not needed automake option', dest='ignore')
-	ig_opt.add_option('--libexecdir', type='string', help='not needed automake option', dest='ignore')
-	ig_opt.add_option('--disable-maintainer-mode', action='store_true', default=False, help='not needed automake option', dest='ignore')
-	ig_opt.add_option('--disable-dependency-tracking', action='store_true', default=False, help='not needed automake option', dest='ignore')
+	opt_helper(os_compiler_opts, "rpath", True, 'Should rpath be disabled?')
