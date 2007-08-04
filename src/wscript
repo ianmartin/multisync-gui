@@ -11,7 +11,7 @@ def build(bld):
 	obj_gui = bld.create_obj('cc', 'program')
 	obj_gui.target='multisync-gui'
 	obj_gui.includes='.'
-	obj_gui.find_sources_in_dirs('. plugins')
+	obj_gui.find_sources_in_dirs('. plugins', 'plugins/msync_evo2sync.c plugins/msync_evo2sync.c')
 	obj_gui.defines='HAVE_CONFIG_H=1'
 	obj_gui.uselib = 'GLOBAL_PATH GLIB GTK GLADE OPENSYNC'
 

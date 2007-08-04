@@ -114,6 +114,7 @@ distclean:
 	@$WAF distclean
 	@-rm -rf cache/
 	@-rm -rf _build_
+	@-rm -f multisync-gui
 	@-rm -f Makefile
 
 check:
