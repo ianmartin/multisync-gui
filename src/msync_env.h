@@ -14,6 +14,7 @@ struct MSyncEnv {
 	GtkWidget* editgroupdialog;
 	GtkWidget* editgrouptreeview;
 	GtkWidget* editgrouplabel;
+	GtkWidget* editgroupdiscoverhbox;
 	GtkWidget* editgroupplugincontainer;
 	GtkWidget* editgroupsettings;
 	GtkWidget* editgroupsettingsgroupnameentry;

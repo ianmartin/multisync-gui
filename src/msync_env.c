@@ -51,6 +51,7 @@ int msync_env_init(MSyncEnv* env)
 	env->editgroupdialog = glade_xml_get_widget(env->gladexml, "editgroupdialog");
 	env->editgrouptreeview = glade_xml_get_widget(env->gladexml, "editgrouptreeview");
 	env->editgrouplabel = glade_xml_get_widget(env->gladexml, "editgrouplabel");
+	env->editgroupdiscoverhbox = glade_xml_get_widget(env->gladexml, "editgroupdiscoverhbox");
 	env->editgroupplugincontainer = glade_xml_get_widget(env->gladexml, "editgroupplugincontainer");
 	env->editgroupsettings = glade_xml_get_widget(env->gladexml, "editgroupsettings");
 	env->editgroupsettingsgroupnameentry = glade_xml_get_widget(env->gladexml, "editgroupsettingsgroupnameentry");
@@ -91,6 +92,9 @@ int msync_env_init(MSyncEnv* env)
 	
 	widget = glade_xml_get_widget(env->gladexml, "editgroupaddmemberapplybutton");	
 	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_editgroupaddmemberapplybutton_clicked), env);		
+
+	widget = glade_xml_get_widget(env->gladexml, "editgroupdiscoverbutton");	
+	g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(on_editgroupdiscoverbutton_clicked), env);
 
 	GtkTreeSelection* treeselection = gtk_tree_view_get_selection(GTK_TREE_VIEW(env->editgrouptreeview));
 	g_signal_connect(G_OBJECT(treeselection), "changed", G_CALLBACK(on_editgrouptreeview_change), env);
@@ -387,11 +391,13 @@ void msync_env_editgroupdialog_show_extended(MSyncEnv *env, OSyncMember* member)
 	env->curmember = member;
 	
 	gchar* tmp;
-	if(!member)
+	if(!member) {
 		tmp = g_strdup_printf("<span weight=\"bold\" size=\"larger\">Settings for Group %s</span>", osync_group_get_name(env->curgroup->group));
-	else
+		gtk_widget_hide(env->editgroupdiscoverhbox);	
+	} else {
 		tmp = g_strdup_printf("<span weight=\"bold\" size=\"larger\">Settings for Member %s</span>", osync_member_get_pluginname(member));
-	
+		gtk_widget_show(env->editgroupdiscoverhbox);
+	}
 	gtk_label_set_text(GTK_LABEL(env->editgrouplabel), tmp);
 	gtk_label_set_use_markup(GTK_LABEL(env->editgrouplabel), TRUE);
 	g_free(tmp);

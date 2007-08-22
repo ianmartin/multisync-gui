@@ -96,10 +96,6 @@ void msync_group_syncronize2(MSyncGroup *group)
 		goto error;
 	}
 	
-	//TODO this stuff should be stored in the group settings
-	osync_engine_set_use_merger(group->engine, FALSE);
-	osync_engine_set_use_converter(group->engine, TRUE);
-	
 	osync_engine_set_enginestatus_callback(group->engine, msync_group_syncronize_enginestatus, group);
 	osync_engine_set_memberstatus_callback(group->engine, msync_group_syncronize_memberstatus, group);
 	osync_engine_set_changestatus_callback(group->engine, msync_group_syncronize_entrystatus, group);

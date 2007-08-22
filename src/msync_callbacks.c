@@ -49,6 +49,39 @@ void on_editgroupaddmemberapplybutton_clicked(GtkButton* button, gpointer user_d
 	}
 }
 
+void on_editgroupdiscoverbutton_clicked(GtkButton* button, gpointer user_data)
+{
+	g_assert(user_data);
+	MSyncEnv* env = (MSyncEnv*)user_data;
+	OSyncError* error = NULL;
+	
+	//TODO: dont block gui thread!
+	//g_thread_create((GThreadFunc)msync_group_syncronize2, group, FALSE, NULL);
+	
+	OSyncEngine *engine = osync_engine_new(env->curgroup->group, &error);
+	if (!engine) {
+		goto error;
+	}
+	
+	/* Discover the objtypes for the members */
+	if(!osync_engine_discover_and_block(engine,env->curmember, &error))
+		goto error_free_engine;
+	
+	osync_engine_unref(engine);
+	return;
+
+error_free_engine:
+	osync_engine_unref(engine);
+error:
+	msync_error_message(GTK_WINDOW(env->mainwindow), TRUE, "Error while discovering: %s\n", osync_error_print(&error));
+	osync_error_unref(&error);
+}
+
+void on_editgroupdiscoverbutton_clicked2(gpointer user_data)
+{
+
+}
+
 void on_editgrouptreeview_change(GtkTreeSelection *selection, gpointer user_data)
 {
 	MSyncEnv* env;
