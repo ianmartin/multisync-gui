@@ -954,7 +954,7 @@ Eike Lang &lt;mail@elang.de&gt;</property>
 			      <child>
 				<widget class="GtkImage" id="image6">
 				  <property name="visible">True</property>
-				  <property name="stock">gtk-justify-center</property>
+				  <property name="stock">gtk-find</property>
 				  <property name="icon_size">4</property>
 				  <property name="xalign">0.5</property>
 				  <property name="yalign">0.5</property>
@@ -1058,11 +1058,31 @@ Eike Lang &lt;mail@elang.de&gt;</property>
 			  <child>
 			    <widget class="GtkTable" id="table1">
 			      <property name="visible">True</property>
-			      <property name="n_rows">1</property>
+			      <property name="n_rows">3</property>
 			      <property name="n_columns">2</property>
 			      <property name="homogeneous">False</property>
-			      <property name="row_spacing">0</property>
-			      <property name="column_spacing">0</property>
+			      <property name="row_spacing">5</property>
+			      <property name="column_spacing">5</property>
+
+			      <child>
+				<widget class="GtkEntry" id="editgroupsettingsgroupnameentry">
+				  <property name="visible">True</property>
+				  <property name="editable">True</property>
+				  <property name="visibility">True</property>
+				  <property name="max_length">0</property>
+				  <property name="text" translatable="yes"></property>
+				  <property name="has_frame">True</property>
+				  <property name="invisible_char">●</property>
+				  <property name="activates_default">False</property>
+				</widget>
+				<packing>
+				  <property name="left_attach">1</property>
+				  <property name="right_attach">2</property>
+				  <property name="top_attach">0</property>
+				  <property name="bottom_attach">1</property>
+				  <property name="y_options"></property>
+				</packing>
+			      </child>
 
 			      <child>
 				<widget class="GtkLabel" id="label8">
@@ -1087,25 +1107,52 @@ Eike Lang &lt;mail@elang.de&gt;</property>
 				  <property name="right_attach">1</property>
 				  <property name="top_attach">0</property>
 				  <property name="bottom_attach">1</property>
+				  <property name="x_options">fill</property>
+				  <property name="y_options"></property>
 				</packing>
 			      </child>
 
 			      <child>
-				<widget class="GtkEntry" id="editgroupsettingsgroupnameentry">
+				<widget class="GtkCheckButton" id="editgroupsettingsmergercheckbutton">
 				  <property name="visible">True</property>
-				  <property name="editable">True</property>
-				  <property name="visibility">True</property>
-				  <property name="max_length">0</property>
-				  <property name="text" translatable="yes"></property>
-				  <property name="has_frame">True</property>
-				  <property name="invisible_char">●</property>
-				  <property name="activates_default">False</property>
+				  <property name="can_focus">True</property>
+				  <property name="label" translatable="yes">Merger Enabled</property>
+				  <property name="use_underline">True</property>
+				  <property name="relief">GTK_RELIEF_NORMAL</property>
+				  <property name="focus_on_click">True</property>
+				  <property name="active">False</property>
+				  <property name="inconsistent">False</property>
+				  <property name="draw_indicator">True</property>
 				</widget>
 				<packing>
-				  <property name="left_attach">1</property>
+				  <property name="left_attach">0</property>
 				  <property name="right_attach">2</property>
-				  <property name="top_attach">0</property>
-				  <property name="bottom_attach">1</property>
+				  <property name="top_attach">2</property>
+				  <property name="bottom_attach">3</property>
+				  <property name="x_options">fill</property>
+				  <property name="y_options"></property>
+				</packing>
+			      </child>
+
+			      <child>
+				<widget class="GtkCheckButton" id="editgroupsettingsconvertercheckbutton">
+				  <property name="visible">True</property>
+				  <property name="can_focus">True</property>
+				  <property name="label" translatable="yes">Converter Enabled</property>
+				  <property name="use_underline">True</property>
+				  <property name="relief">GTK_RELIEF_NORMAL</property>
+				  <property name="focus_on_click">True</property>
+				  <property name="active">False</property>
+				  <property name="inconsistent">False</property>
+				  <property name="draw_indicator">True</property>
+				</widget>
+				<packing>
+				  <property name="left_attach">0</property>
+				  <property name="right_attach">2</property>
+				  <property name="top_attach">1</property>
+				  <property name="bottom_attach">2</property>
+				  <property name="x_options">fill</property>
+				  <property name="y_options"></property>
 				</packing>
 			      </child>
 			    </widget>

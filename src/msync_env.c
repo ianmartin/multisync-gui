@@ -54,6 +54,8 @@ int msync_env_init(MSyncEnv* env)
 	env->editgroupdiscoverhbox = glade_xml_get_widget(env->gladexml, "editgroupdiscoverhbox");
 	env->editgroupplugincontainer = glade_xml_get_widget(env->gladexml, "editgroupplugincontainer");
 	env->editgroupsettings = glade_xml_get_widget(env->gladexml, "editgroupsettings");
+	env->editgroupsettingsconvertercheckbutton = glade_xml_get_widget(env->gladexml, "editgroupsettingsconvertercheckbutton");
+	env->editgroupsettingsmergercheckbutton = glade_xml_get_widget(env->gladexml, "editgroupsettingsmergercheckbutton");
 	env->editgroupsettingsgroupnameentry = glade_xml_get_widget(env->gladexml, "editgroupsettingsgroupnameentry");
 	env->editgroupaddmemberdialog = glade_xml_get_widget(env->gladexml, "editgroupaddmemberdialog");
 	env->editgroupaddmembertreeview = glade_xml_get_widget(env->gladexml, "editgroupaddmembertreeview");
@@ -348,24 +350,22 @@ void msync_env_editgroupdialog_save_settings(MSyncEnv *env, MSyncGroup* group)
 		filename = g_strdup_printf("%s/%s", osync_group_get_configdir(group->group), MULTISYNC_LEGACY_FILTERFILE);
 		if (!osync_file_write(filename, buffer, size, 0600, &error)) {
 			msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
-			//osync_error_free(&error);
 			osync_error_unref(&error);
 		}
 		g_free(filename);
 		#endif
 		
-		char *tmp = (char *) gtk_entry_get_text(GTK_ENTRY(env->editgroupsettingsgroupnameentry));
-		if(strcmp(osync_group_get_name(group->group), tmp) != 0)
-		{
-			osync_group_set_name(group->group, tmp);
 		
-			if (!osync_group_save(group->group, &error)) {
-				msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
-				//osync_error_free(&error);
-				osync_error_unref(&error);
-			}
-			msync_env_editgroupdialog_update_treeview(env);
+		osync_group_set_name(group->group, gtk_entry_get_text(GTK_ENTRY(env->editgroupsettingsgroupnameentry)));
+		osync_group_set_converter_enabled(group->group, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(env->editgroupsettingsconvertercheckbutton)));
+		osync_group_set_merger_enabled(group->group, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(env->editgroupsettingsmergercheckbutton)));
+		
+		if (!osync_group_save(group->group, &error)) {
+			msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
+			osync_error_unref(&error);
 		}
+		msync_env_editgroupdialog_update_treeview(env);
+
 	/* save member settings */
 	}else{
 		plugin = msync_plugin_find(env->plugins, osync_member_get_pluginname(env->curmember));
@@ -373,13 +373,11 @@ void msync_env_editgroupdialog_save_settings(MSyncEnv *env, MSyncGroup* group)
 			plugin = msync_plugin_find(env->plugins, "default");
 		
 		const char* data = plugin->msync_plugin_get_config(plugin);
-		//osync_member_set_config(env->curmember, data, strlen(data));
 		osync_member_set_config(env->curmember, data);
 		free((void *)data);
 
 		if (!osync_group_save(group->group, &error)) {
 			msync_error_message(GTK_WINDOW(env->editgroupdialog), FALSE, "Unable to save group: %s\n", osync_error_print(&error));
-			//osync_error_free(&error);
 			osync_error_unref(&error);
 		}
 	}
@@ -410,7 +408,10 @@ void msync_env_editgroupdialog_show_extended(MSyncEnv *env, OSyncMember* member)
 	if(!member) {
 		gtk_container_add(GTK_CONTAINER(env->editgroupplugincontainer), env->editgroupsettings);
 		gtk_widget_show(env->editgroupsettings);
+
 		gtk_entry_set_text(GTK_ENTRY(env->editgroupsettingsgroupnameentry), (const gchar *)osync_group_get_name(env->curgroup->group));
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(env->editgroupsettingsconvertercheckbutton), osync_group_get_converter_enabled(env->curgroup->group));
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(env->editgroupsettingsmergercheckbutton), osync_group_get_merger_enabled(env->curgroup->group));
 		
 		#ifdef MULTISYNC_LEGACY
 		char* filename;

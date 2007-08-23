@@ -17,6 +17,8 @@ struct MSyncEnv {
 	GtkWidget* editgroupdiscoverhbox;
 	GtkWidget* editgroupplugincontainer;
 	GtkWidget* editgroupsettings;
+	GtkWidget* editgroupsettingsconvertercheckbutton;
+	GtkWidget* editgroupsettingsmergercheckbutton;
 	GtkWidget* editgroupsettingsgroupnameentry;
 	#ifdef MULTISYNC_LEGACY
 	GList* editgroupsettingsfilter;
