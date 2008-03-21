@@ -43,7 +43,7 @@ int msync_env_init(MSyncEnv* env)
 	//osync_env_set_option(env->osyncenv, "LOAD_FORMATS", load_formats);
 
 	env->plugins = NULL;
-	env->gladexml = glade_xml_new(MULTISYNC_GLADE, NULL, NULL);
+	env->gladexml = glade_xml_new(MULTISYNCGUI_GLADE, NULL, NULL);
 	env->mainwindow = glade_xml_get_widget(env->gladexml, "mainwindow");
 	env->groupcontainer = glade_xml_get_widget(env->gladexml, "groupcontainer1");
 	env->newgroupdialog = glade_xml_get_widget(env->gladexml, "newgroupdialog");

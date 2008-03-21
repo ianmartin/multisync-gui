@@ -877,7 +877,7 @@ void msync_group_create_syncronizegroupconflictdialog(MSyncGroup *group)
   
 	GError **gerror = NULL;
 	GdkPixbuf *pixbuf = NULL;
-	pixbuf = gdk_pixbuf_new_from_file(MULTISYNC_ICON, gerror);
+	pixbuf = gdk_pixbuf_new_from_file(MULTISYNCGUI_ICON, gerror);
   	if(pixbuf) {
 		gtk_window_set_icon (GTK_WINDOW (group->conflictdialog), pixbuf);
 		gdk_pixbuf_unref (pixbuf);

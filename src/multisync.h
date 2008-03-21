@@ -14,18 +14,7 @@
 #include <opensync/opensync-engine.h>
 #include <opensync/opensync-data.h>
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif /*HAVE_CONFIG_H*/
-
-#ifndef MULTISYNC_GLADE
-#define MULTISYNC_GLADE "multisync.glade"
-#endif /*MULTISYNC_GLADE*/
-
-#ifndef MULTISYNC_ICON
-#define MULTISYNC_ICON "../misc/multisync.png"
-#endif /*MULTISYNC_ICON*/
-
 //#ifndef MULTISYNC_LEGACY
 //#define MULTISYNC_LEGACY
 //#endif /*MULTISYNC_LEGACY*/

@@ -21,7 +21,7 @@ void msync_error_message(GtkWindow* window, gboolean threadsafe, char *format, .
 	
 	GError **gerror = NULL;
 	GdkPixbuf *pixbuf = NULL;
-	pixbuf = gdk_pixbuf_new_from_file(MULTISYNC_ICON, gerror);
+	pixbuf = gdk_pixbuf_new_from_file(MULTISYNCGUI_ICON, gerror);
   	if(pixbuf) {
 		gtk_window_set_icon (GTK_WINDOW (dialog), pixbuf);
 		gdk_pixbuf_unref (pixbuf);
