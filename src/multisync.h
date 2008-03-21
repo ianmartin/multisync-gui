@@ -5,7 +5,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
-#include <gdk/gdkx.h>
 #include <glade/glade.h>
 #include <libxml/parser.h>
 #include <opensync/opensync.h>
