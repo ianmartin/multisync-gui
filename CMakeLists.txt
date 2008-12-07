@@ -1,5 +1,7 @@
 PROJECT( multisyncgui C )
 
+cmake_minimum_required(VERSION 2.4)
+
 SET( MULTISYNCGUI_GLADE_DIR "${CMAKE_INSTALL_PREFIX}/usr/share/multisync-gui/" )
 SET( MULTISYNCGUI_ICON_DIR "${CMAKE_INSTALL_PREFIX}/usr/share/pixmaps/multisync-gui/" )
 
