@@ -71,7 +71,7 @@ int msync_env_init(MSyncEnv* env)
 	g_signal_connect(G_OBJECT(env->aboutdialog), "delete_event", G_CALLBACK (gtk_true), NULL);
 	g_signal_connect(G_OBJECT(env->aboutdialog), "response", G_CALLBACK(gtk_widget_hide), NULL);
 
-	widget = glade_xml_get_widget (env->gladexml, "toolbutton1");
+	widget = glade_xml_get_widget(env->gladexml, "addgroup_button");
 	g_signal_connect_swapped(G_OBJECT(widget), "clicked", G_CALLBACK(msync_evn_newgroupdialog_show), env);
 
 	//widget = glade_xml_get_widget (gladexml, "toolbutton2");
